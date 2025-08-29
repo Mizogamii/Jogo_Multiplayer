@@ -8,6 +8,13 @@ import (
 	"fmt"
 	"net"
 	"io"
+	"sync"
+)
+
+var (
+	queue []*services.Cliente
+	queueLock   sync.Mutex
+	mux sync.Mutex
 )
 
 func HandleConnection(conn net.Conn) {
@@ -34,6 +41,12 @@ func HandleConnection(conn net.Conn) {
 		case "LOGIN":
     		HandleLogin(conn, req)
     
+		case "PLAY":
+			HandlePlay(conn, req)
+
+		case "PACK":
+			HandlePack()
+
 		default:
 			return
 		}
@@ -80,6 +93,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 				Status:     "livre",
 			}
 			services.AddUsers(cliente)
+			fmt.Println(cliente.Status)
 			fmt.Println("Login ok")
 			services.SendResponse(conn, "success", "Login realizado com sucesso.", nil)
 			return cliente, true
@@ -88,3 +102,49 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 	services.SendResponse(conn, "error", "Login ou senha inválidos.", nil)
 	return nil, false
 }
+
+func HandlePlay(conn net.Conn, req shared.Request){
+	
+	fmt.Println("Play do server uau")
+	
+	var user shared.User
+
+	data, _ := json.Marshal(req.Data)
+	json.Unmarshal(data, &user)
+	userName := user.UserName
+
+	client := services.GetClientByName(userName)
+	if client == nil{
+		fmt.Println("Cliente não logado: ", userName)
+		services.SendResponse(conn, "error","Usuário não está logado", nil)
+		return
+	}
+	client.Status = "fila"
+	fmt.Println(client.Status)
+
+	queueLock.Lock()
+	queue = append(queue, client)
+	queueLock.Unlock()
+
+	lista := getUsersQueue()
+	fmt.Println("teste fila")
+	fmt.Println(lista)
+
+	services.SendResponse(conn, "success", "Você entrou na fila de jogo", nil)
+}
+
+func HandlePack(){
+	fmt.Println("Pack do server uau")
+}
+
+func getUsersQueue() []string {
+	names := []string{}
+	queueLock.Lock()
+	defer queueLock.Unlock()
+	for _, c := range queue {
+		names = append(names, c.User)
+	}
+	return names
+}
+
+

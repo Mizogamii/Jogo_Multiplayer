@@ -2,10 +2,9 @@ package main
 
 import (
 	"PBL/client/utils"
-	"encoding/json"
 	"fmt"
 	"net"
-	"PBL/shared"
+	"os"
 )
 
 func main() {
@@ -24,11 +23,9 @@ func main() {
 		switch operationType{
 		case "REGISTER":
 			user = utils.Cadastro()
-			fmt.Println("Usuário cadastrado: ", user)
 
 		case "LOGIN":
 			user = utils.Login()
-			fmt.Println("Usuário logado: ", user)
 		
 		case "EXIT":
 			fmt.Println("Saindo...")
@@ -37,36 +34,44 @@ func main() {
 			fmt.Println("ERRO: Opção inválida.")
 		}
 
-		request := shared.Request{
-			Action: operationType,
-			Data: user,
-		}
-
-		jsonData, err := json.Marshal(request)
+		resp, err := utils.SendRequest(conn, operationType, user) 
 		if err != nil{
-			fmt.Println("Erro ao converter para json: ", err)
-			return
+			fmt.Println("Erro:", err)
+    		continue
 		}
-
-		_, err = conn.Write(jsonData)
-		if err != nil{
-			fmt.Println("Erro ao enviar para o servidor: ", err)
-			return
-		}
-
-		var resp shared.Response
-    	decoder := json.NewDecoder(conn)
-    	err = decoder.Decode(&resp)
-    	if err != nil {
-        	fmt.Println("Erro ao ler resposta:", err)
-        	return
-    	}
 
     	fmt.Println("Resposta do servidor:", resp.Status, resp.Message)
 
 		if resp.Status == "success"{
-			utils.ShowMenuLogin(conn)
-		}else{
+			operationTypeLogin := utils.ShowMenuLogin(conn)
+			var action string
+			switch operationTypeLogin{
+			case "1":
+				action = "PLAY"
+				fmt.Println("PLAY")
+
+			case "2":
+				action = "PACK"
+				fmt.Println("PACK")
+
+			case "3":
+				action = "EXIT"
+				fmt.Println("Deslogado com sucesso!")
+				os.Exit(1)
+
+			default:
+				fmt.Println("ERRO: Digite apenas números de 1 a 3")
+				continue
+			}
+
+			resp, err := utils.SendRequest(conn, action, user) 
+			if err != nil{
+				fmt.Println("Erro:", err)
+				continue
+			}
+			fmt.Println("Resposta do servidor:", resp.Status, resp.Message)
+
+	}else{
 			fmt.Println("ERRO Login inválido: ", resp.Message)
 		}
 	}

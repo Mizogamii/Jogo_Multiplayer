@@ -24,19 +24,23 @@ func Menu() string{
 	switch option {
 	case "1": 
 		return "REGISTER"
+
 	case "2":
 		return "LOGIN"
+
 	case "3":
 		fmt.Println("Saindo...")
 		os.Exit(1) //isso pra não voltar pra o menu princiapl --> o usuario sai do servidor
+	
 	default:
 		fmt.Print("ERRO! Digite apenas números de 1 a 3")
 		return ""
 	}
+	
 	return ""
 }
 
-func ShowMenuLogin(conn net.Conn){
+func ShowMenuLogin(conn net.Conn) string{
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Println("--------------------------")
@@ -47,38 +51,7 @@ func ShowMenuLogin(conn net.Conn){
 		fmt.Println("3 - Deslogar")
 		fmt.Print("Insira a opção desejada: ")
 		input := ReadLine(reader)
-
-		var action string
-		switch input{
-		case "1":
-			action = "PLAY"
-		case "2":
-			action = "PACK"
-		case "3":
-			action = "EXIT"
-			fmt.Println("Deslogado com sucesso!")
-			os.Exit(1)
-		default:
-			fmt.Println("ERRO: Digite apenas números de 1 a 3")
-			continue
-		}
-		
-		req := shared.Request{
-			Action: action,
-			Data: nil,
-		}
-
-		jsonData, err := json.Marshal(req)
-		if err != nil{
-			fmt.Println("Erro ao converter json: ", err)	
-			continue
-		}
-
-		_, err = conn.Write(jsonData)
-		if err != nil{
-			fmt.Println("Erro ao envar para o servidor: ", err)
-			return
-		}
+		return input
 	}
 }
 
@@ -101,4 +74,30 @@ func ShowMenuGame(){
 func ReadLine(reader *bufio.Reader) string {
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
+}
+
+func SendRequest(conn net.Conn, action string, data interface{}) (*shared.Response, error) {
+	req := shared.Request{
+			Action: action,
+			Data: data,
+		}
+
+		jsonData, err := json.Marshal(req)
+		if err != nil{
+			fmt.Println("Erro ao converter json: ", err)	
+			return nil, fmt.Errorf("ERRO: Conversão json peba %w", err)
+		}
+
+		_, err = conn.Write(jsonData)
+		if err != nil{
+			return nil, fmt.Errorf("Erro ao envar para o servidor: %w", err)
+		}
+		var resp shared.Response
+    	decoder := json.NewDecoder(conn)
+    	err = decoder.Decode(&resp)
+    	if err != nil {
+        	return nil, fmt.Errorf("ERRO: Leitura da resposta: %w", err)
+    	}
+
+    	return &resp, nil
 }

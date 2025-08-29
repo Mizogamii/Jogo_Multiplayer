@@ -16,7 +16,6 @@ type Cliente struct {
 	Status string
 }
 
-
 var (
 	listUsersOnline []*Cliente
 	listUsersLock   sync.Mutex
@@ -52,34 +51,16 @@ func GetUsersOnline() []string {
 	return names
 }
 
+func GetClientByName(userName string) *Cliente{
+    listUsersLock.Lock()
+    defer listUsersLock.Unlock()
 
-func SendMessage(senderUser string, receiver string, message string) string {
-	listUsersLock.Lock()
-	defer listUsersLock.Unlock()
-
-	for _, i := range listUsersOnline {
-		if i.User == receiver {
-			_, err := i.Connection.Write([]byte(fmt.Sprintf("%s: %s\n", senderUser, message)))
-			if err != nil {
-				return "ERRO: Falha ao enviar a mensagem\n"
-			}
-			return "OK"
-		}
-	}
-
-	return "ERRO: Usuário não está online.\n"
-}
-
-func SetStatus(username, status string){
-	mux.Lock()
-	defer mux.Unlock()
-
-	for _, i := range listUsersOnline{
-		if i.User == username{
-			i.Status = status
-			break
-		}
-	}
+    for _, c := range listUsersOnline {
+        if c.User == userName {
+            return c
+        }
+    }
+    return nil 
 }
 
 func UserOnline(userName string) bool{
@@ -106,6 +87,22 @@ func CheckUser(newUser shared.User) bool {
 	return false
 }
 
+func SendMessage(senderUser string, receiver string, message string) string {
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+
+	for _, i := range listUsersOnline {
+		if i.User == receiver {
+			_, err := i.Connection.Write([]byte(fmt.Sprintf("%s: %s\n", senderUser, message)))
+			if err != nil {
+				return "ERRO: Falha ao enviar a mensagem\n"
+			}
+			return "OK"
+		}
+	}
+
+	return "ERRO: Usuário não está online.\n"
+}
 
 func SendResponse(conn net.Conn, status string, message string, data interface{}) {
     resp := shared.Response{
@@ -116,4 +113,17 @@ func SendResponse(conn net.Conn, status string, message string, data interface{}
 
     json.NewEncoder(conn).Encode(resp)
 }
+
+func SetStatus(username, status string){
+	mux.Lock()
+	defer mux.Unlock()
+
+	for _, i := range listUsersOnline{
+		if i.User == username{
+			i.Status = status
+			break
+		}
+	}
+}
+
 
