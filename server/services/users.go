@@ -1,0 +1,119 @@
+package services
+
+import (
+	"PBL/server/storage"
+	"PBL/shared"
+	"encoding/json"
+	"fmt"
+	"net"
+	"sync"
+)
+
+type Cliente struct {
+	Connection net.Conn
+	User    string
+	Login     bool
+	Status string
+}
+
+
+var (
+	listUsersOnline []*Cliente
+	listUsersLock   sync.Mutex
+	mux sync.Mutex
+)
+
+func AddUsers(cliente *Cliente) {
+	listUsersLock.Lock()
+	listUsersOnline = append(listUsersOnline, cliente)
+	listUsersLock.Unlock()
+	fmt.Println("Usuários online:", GetUsersOnline())
+}
+
+func DelUsers(cliente *Cliente) {
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+	for i, j := range listUsersOnline {
+		if j == cliente { // compara ponteiros
+			listUsersOnline = append(listUsersOnline[:i], listUsersOnline[i+1:]...)
+			break
+		}
+	}
+	fmt.Println("Usuários online:", GetUsersOnline())
+}
+
+func GetUsersOnline() []string {
+	names := []string{}
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+	for _, c := range listUsersOnline {
+		names = append(names, c.User)
+	}
+	return names
+}
+
+
+func SendMessage(senderUser string, receiver string, message string) string {
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+
+	for _, i := range listUsersOnline {
+		if i.User == receiver {
+			_, err := i.Connection.Write([]byte(fmt.Sprintf("%s: %s\n", senderUser, message)))
+			if err != nil {
+				return "ERRO: Falha ao enviar a mensagem\n"
+			}
+			return "OK"
+		}
+	}
+
+	return "ERRO: Usuário não está online.\n"
+}
+
+func SetStatus(username, status string){
+	mux.Lock()
+	defer mux.Unlock()
+
+	for _, i := range listUsersOnline{
+		if i.User == username{
+			i.Status = status
+			break
+		}
+	}
+}
+
+func UserOnline(userName string) bool{
+	online := GetUsersOnline()
+	for _, i := range online{
+		if i == userName {
+			return true
+		}
+	}
+	return false
+}
+
+func CheckUser(newUser shared.User) bool {
+	users, err := storage.LoadUsers()
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err)
+		return false
+	}
+	for _, u := range users {
+		if u.UserName == newUser.UserName && u.Password == newUser.Password {
+			return true
+		}
+	}
+	return false
+}
+
+
+func SendResponse(conn net.Conn, status string, message string, data interface{}) {
+    resp := shared.Response{
+        Status:  status,
+        Message: message,
+        Data:    data,
+    }
+
+    json.NewEncoder(conn).Encode(resp)
+}
+
