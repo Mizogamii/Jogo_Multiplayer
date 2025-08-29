@@ -34,7 +34,7 @@ func SaveUsers(newUser shared.User) error {
 	//Cria a pasta se não existir
 	err = os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("falha ao criar pasta: %w", err)
+		return fmt.Errorf("Falha ao criar pasta: %w", err)
 	}
 
 	filePath := getUsersFilePath()
@@ -50,7 +50,7 @@ func LoadUsers() ([]shared.User, error) {
 	//Pasta existe
 	err := os.MkdirAll(getDataDir(), os.ModePerm)
 	if err != nil {
-		return nil, fmt.Errorf("falha ao criar pasta: %w", err)
+		return nil, fmt.Errorf("Falha ao criar pasta: %w", err)
 	}
 
 	//Lê o arquivo JSON

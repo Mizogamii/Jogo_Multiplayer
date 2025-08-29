@@ -1,20 +1,24 @@
 package handlers
 
 import (
+	"PBL/server/game"
+	"PBL/server/models"
 	"PBL/server/services"
 	"PBL/server/storage"
 	"PBL/shared"
 	"encoding/json"
 	"fmt"
-	"net"
 	"io"
+	"net"
 	"sync"
+	"time"
 )
 
 var (
-	queue []*services.Cliente
-	queueLock   sync.Mutex
-	mux sync.Mutex
+	Matchmaking = &models.Matchmaking{
+		Queue: make([]*services.Cliente, 0),
+		Mu: sync.Mutex{},
+	}
 )
 
 func HandleConnection(conn net.Conn) {
@@ -122,15 +126,16 @@ func HandlePlay(conn net.Conn, req shared.Request){
 	client.Status = "fila"
 	fmt.Println(client.Status)
 
-	queueLock.Lock()
-	queue = append(queue, client)
-	queueLock.Unlock()
+	Matchmaking.Mu.Lock()
+	Matchmaking.Queue = append(Matchmaking.Queue, client)
+	Matchmaking.Mu.Unlock()
 
 	lista := getUsersQueue()
 	fmt.Println("teste fila")
 	fmt.Println(lista)
 
 	services.SendResponse(conn, "success", "Você entrou na fila de jogo", nil)
+
 }
 
 func HandlePack(){
@@ -139,12 +144,36 @@ func HandlePack(){
 
 func getUsersQueue() []string {
 	names := []string{}
-	queueLock.Lock()
-	defer queueLock.Unlock()
-	for _, c := range queue {
+	Matchmaking.Mu.Lock()
+	defer Matchmaking.Mu.Unlock()
+	for _, c := range Matchmaking.Queue {
 		names = append(names, c.User)
 	}
 	return names
 }
 
+func StartMatchmaking(){
+	for{
+		Matchmaking.Mu.Lock()
 
+		if len(Matchmaking.Queue) >= 2{
+			player1 := Matchmaking.Queue[0]
+			player2 := Matchmaking.Queue[1]
+
+			Matchmaking.Queue = Matchmaking.Queue[2:]
+			
+			Matchmaking.Mu.Unlock()
+
+			go notifyClient(player1, player2)
+			go game.CreateRoom(player1, player2)
+			continue
+		}
+		Matchmaking.Mu.Unlock()
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func notifyClient(player1, player2 *services.Cliente){
+	go services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
+	go services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
+}
