@@ -72,7 +72,7 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 			services.SendResponse(conn, "error", "Falha ao salvar usuário.", nil)
 	
 		} else {
-			services.SendResponse(conn, "success", "Cadastro realizado", nil)
+			services.SendResponse(conn, "successRegister", "Cadastro realizado", nil)
 			fmt.Println("Cadastro ok")
 		}
 	} else {
@@ -82,7 +82,7 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 
 func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 	var user shared.User
-
+	
 	data, _ := json.Marshal(req.Data)
 	json.Unmarshal(data, &user)
 
@@ -99,7 +99,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
 			fmt.Println("Login ok")
-			services.SendResponse(conn, "success", "Login realizado com sucesso.", nil)
+			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", nil)
 			return cliente, true
 		}
 	}
@@ -107,41 +107,52 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 	return nil, false
 }
 
-func HandlePlay(conn net.Conn, req shared.Request){
-	
+func HandlePlay(conn net.Conn, req shared.Request) {
 	fmt.Println("Play do server uau")
-	
-	var user shared.User
 
+	var user shared.User
 	data, _ := json.Marshal(req.Data)
 	json.Unmarshal(data, &user)
 	userName := user.UserName
 
 	client := services.GetClientByName(userName)
-	if client == nil{
+	if client == nil {
 		fmt.Println("Cliente não logado: ", userName)
-		services.SendResponse(conn, "error","Usuário não está logado", nil)
+		services.SendResponse(conn, "error", "Usuário não está logado", nil)
 		return
 	}
-	client.Status = "fila"
-	fmt.Println(client.Status)
 
 	Matchmaking.Mu.Lock()
+	defer Matchmaking.Mu.Unlock()
+
+	// Checa se já está na fila
+	for _, c := range Matchmaking.Queue {
+		if c.User == userName {
+			services.SendResponse(conn, "alreadyInQueue", "Você já está na fila", nil)
+			return
+		}
+	}
+
+	client.Status = "fila"
 	Matchmaking.Queue = append(Matchmaking.Queue, client)
-	Matchmaking.Mu.Unlock()
 
-	lista := getUsersQueue()
-	fmt.Println("teste fila")
-	fmt.Println(lista)
+	fmt.Println("Cliente entrou na fila:", client.User)
 
-	services.SendResponse(conn, "success", "Você entrou na fila de jogo", nil)
+	// Mostra a fila atual
+	names := []string{}
+	for _, c := range Matchmaking.Queue {
+		names = append(names, c.User)
+	}
+	fmt.Println("Fila atual:", names)
 
+	services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
 }
+
 
 func HandlePack(){
 	fmt.Println("Pack do server uau")
 }
-
+/*
 func getUsersQueue() []string {
 	names := []string{}
 	Matchmaking.Mu.Lock()
@@ -151,6 +162,17 @@ func getUsersQueue() []string {
 	}
 	return names
 }
+
+func inQueue(userName string) bool{
+	in := getUsersQueue()
+	for _, i := range in{
+		if i == userName {
+			return true
+		}
+	}
+	return false
+}*/
+
 
 func StartMatchmaking(){
 	for{
@@ -163,6 +185,8 @@ func StartMatchmaking(){
 			Matchmaking.Queue = Matchmaking.Queue[2:]
 			
 			Matchmaking.Mu.Unlock()
+
+			fmt.Println("Queue: ", Matchmaking.Queue)
 
 			go notifyClient(player1, player2)
 			go game.CreateRoom(player1, player2)

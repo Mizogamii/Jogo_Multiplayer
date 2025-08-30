@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 func Menu() string{
@@ -76,7 +77,7 @@ func ReadLine(reader *bufio.Reader) string {
 	return strings.TrimSpace(text)
 }
 
-func SendRequest(conn net.Conn, action string, data interface{}) (*shared.Response, error) {
+func SendRequest(conn net.Conn, action string, data interface{}) error {
 	req := shared.Request{
 			Action: action,
 			Data: data,
@@ -85,19 +86,50 @@ func SendRequest(conn net.Conn, action string, data interface{}) (*shared.Respon
 		jsonData, err := json.Marshal(req)
 		if err != nil{
 			fmt.Println("Erro ao converter json: ", err)	
-			return nil, fmt.Errorf("ERRO: Conversão json peba %w", err)
+			return fmt.Errorf("ERRO: Conversão json peba %w", err)
 		}
 
 		_, err = conn.Write(jsonData)
 		if err != nil{
-			return nil, fmt.Errorf("Erro ao envar para o servidor: %w", err)
+			return fmt.Errorf("Erro ao enviar para o servidor: %w", err)
 		}
-		var resp shared.Response
-    	decoder := json.NewDecoder(conn)
-    	err = decoder.Decode(&resp)
-    	if err != nil {
-        	return nil, fmt.Errorf("ERRO: Leitura da resposta: %w", err)
-    	}
+	
+    	return nil
+}
 
-    	return &resp, nil
+func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
+    decoder := json.NewDecoder(conn)
+    for {
+        var resp shared.Response
+        if err := decoder.Decode(&resp); err != nil {
+            fmt.Println("Erro ao receber mensagem do servidor:", err)
+            close(respChan)
+            return
+        }
+
+        switch resp.Status {
+        case "match":
+            stopChan <- true
+            fmt.Printf("\nPartida encontrada contra %v!\n", resp.Data)
+        default:
+            respChan <- resp
+        }
+    }
+}
+
+
+func ShowWaitingScreen(stopChan chan bool) {
+    frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
+    i := 0
+    for {
+        select {
+        case <-stopChan:
+            fmt.Println("\nPartida encontrada!")
+            return
+        default:
+            fmt.Printf("\r%s Procurando partida%s", frames[i%len(frames)], strings.Repeat(".", i%4))
+            i++
+            time.Sleep(100 * time.Millisecond)
+        }
+    }
 }
