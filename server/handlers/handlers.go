@@ -38,7 +38,7 @@ func HandleConnection(conn net.Conn) {
 			return
 		}
 
-		switch req.Action  {
+		switch req.Action {
 		case "REGISTER":
     		HandleRegister(conn, req)
 
@@ -99,11 +99,12 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 				User:       user.UserName,
 				Login:      true,
 				Status:     "livre",
+				Cards: loadCards(user.UserName, conn),
 			}
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
 			fmt.Println("Login ok")
-			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", nil)
+			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", cliente)
 			return cliente, true
 		}
 	}
@@ -148,17 +149,17 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 
 }
 
+//listo todas as cartas que o usuario tem com os indices
+//faço ele digitar o nome/numero da carta que ele quer no deck (5 cartas)
 
-func HandleDeck(conn net.Conn, req shared.Request){
-	fmt.Println("Eita escolhendo")
-	
-	//listo todas as cartas que o usuario tem com os indices
-	//faço ele digitar o nome/numero da carta que ele quer no deck (5 cartas)
-
+func HandleDeck(conn net.Conn, req shared.Request) {
+	fmt.Println("deck")
 }
+	
 
 func HandlePack(){
 	fmt.Println("Pack do server uau")
+	//tem que fazer uma função que adiociona as cartas dos pacotes no json do usuario. lembra de ffazer 
 
 }
 
@@ -211,4 +212,14 @@ func StartMatchmaking(){
 func notifyClient(player1, player2 *services.Cliente){
 	go services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
 	go services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
+}
+
+func loadCards(userName string, conn net.Conn,) []string{
+	user, err := storage.LoadUser(userName)
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err)
+		return nil
+	}
+	
+	return user.Cards
 }

@@ -14,6 +14,7 @@ type Cliente struct {
 	User    string
 	Login     bool
 	Status string
+	Cards []string
 }
 
 var (
@@ -74,15 +75,14 @@ func UserOnline(userName string) bool{
 }
 
 func CheckUser(newUser shared.User) bool {
-	users, err := storage.LoadUsers()
+	user, err := storage.LoadUser(newUser.UserName)
 	if err != nil {
 		fmt.Println("Erro ao carregar usuários:", err)
 		return false
 	}
-	for _, u := range users {
-		if u.UserName == newUser.UserName && u.Password == newUser.Password {
-			return true
-		}
+	
+	if user.UserName == newUser.UserName && user.Password == newUser.Password {
+		return true
 	}
 	return false
 }

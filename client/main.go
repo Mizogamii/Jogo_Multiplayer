@@ -3,10 +3,17 @@ package main
 import (
 	"PBL/client/utils"
 	"PBL/shared"
+	"encoding/json"
 	"fmt"
 	"net"
 	"os"
 )
+
+type LoggedUser struct{
+	UserName string
+	Cards []string
+	Deck []string
+}
 
 func main() {
 	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
@@ -24,27 +31,29 @@ func main() {
 	go utils.ListenServer(conn, respChan, stopChan)
 
 	var loginOk bool
-	var user interface{}	
-
+	var currentUser LoggedUser
+	
 	for{
 		if !loginOk{
 			operationType := utils.Menu()
+			var requestData interface{}	
 
 			switch operationType{
 			case "REGISTER":
-				user = utils.Cadastro()
+				requestData = utils.Cadastro()
 
 			case "LOGIN":
-				user = utils.Login()
+				requestData = utils.Login()
 			
 			case "EXIT":
 				fmt.Println("Saindo...")
 				return
 			default:
 				fmt.Println("ERRO: Opção inválida.")
+				continue
 			}
 
-			err := utils.SendRequest(conn, operationType, user) 
+			err := utils.SendRequest(conn, operationType, requestData) 
 			if err != nil{
 				fmt.Println("Erro:", err)
 				continue
@@ -56,13 +65,22 @@ func main() {
 
 			if resp.Status == "successLogin"{
 				loginOk = true
+
+				dataBytes, _ := json.Marshal(resp.Data)
+				var serverUser shared.User
+				json.Unmarshal(dataBytes, &serverUser)
+				currentUser = LoggedUser{
+					UserName: serverUser.UserName,
+					Cards:    serverUser.Cards,
+					Deck:     []string{},
+				}
+
 			}else{
 				fmt.Println("ERRO Login inválido: ", resp.Message)
 			}
 
 		}else{
 			operationTypeLogin := utils.ShowMenuLogin(conn)
-			loginOk = true
 			var action string
 
 			switch operationTypeLogin{
@@ -72,7 +90,7 @@ func main() {
 				go utils.ShowWaitingScreen(stopChan)
 
 			case "2":
-				utils.ListCards(user)
+				ListCards(currentUser)
 				action = "DECK"
 				fmt.Println("DECK")
 
@@ -90,7 +108,7 @@ func main() {
 				continue
 			}
 
-			err := utils.SendRequest(conn, action, user) 
+			err := utils.SendRequest(conn, action, currentUser) 
 			if err != nil{
 				fmt.Println("Erro:", err)
 				continue
@@ -105,4 +123,14 @@ func main() {
 			}
 		}
 	}	
+}
+
+func ListCards(user LoggedUser) {
+	fmt.Println("--------------------------")
+	fmt.Println("          Cartas          ")
+	fmt.Println("--------------------------")
+	for i, card := range user.Cards {
+		fmt.Printf("%d: %s\n", i+1, card)
+	}
+	fmt.Println("--------------------------")
 }

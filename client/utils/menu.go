@@ -133,16 +133,3 @@ func ShowWaitingScreen(stopChan chan bool) {
         }
     }
 }
-
-func ListCards(user interface{}) {
-	fmt.Println("Testando entrada na função list")
-	u, ok := user.(shared.User)
-	if !ok{
-		fmt.Println("ERRO: Usuário invãlido")
-		return
-	}
-
-    for i, card := range u.Cards {
-        fmt.Printf("%d: %s\n", i+1, card)
-    }
-}
