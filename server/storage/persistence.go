@@ -13,8 +13,8 @@ func getDataDir() string {
 	return filepath.Join(cwd, "data")
 }
 
-func getUsersFilePath() string {
-	return filepath.Join(getDataDir(), "users.json")
+func getUsersFilePath(userName string) string {
+	return filepath.Join(getDataDir(), userName+".json")
 }
 
 func SaveUsers(newUser shared.User) error {

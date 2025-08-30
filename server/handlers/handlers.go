@@ -48,6 +48,9 @@ func HandleConnection(conn net.Conn) {
 		case "PLAY":
 			HandlePlay(conn, req)
 
+		case "DECK":
+			HandleDeck(conn, req)
+
 		case "PACK":
 			HandlePack()
 
@@ -64,6 +67,7 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 	json.Unmarshal(data, &user)
 
 	fmt.Println("Usuário recebido: ", user.UserName)
+	fmt.Println("Cartas: ", user.Cards)
 
 	exists := services.CheckUser(user)
 	if !exists {
@@ -125,33 +129,39 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 	Matchmaking.Mu.Lock()
 	defer Matchmaking.Mu.Unlock()
 
-	// Checa se já está na fila
-	for _, c := range Matchmaking.Queue {
-		if c.User == userName {
-			services.SendResponse(conn, "alreadyInQueue", "Você já está na fila", nil)
-			return
-		}
+	if client.Status == "livre"{
+		client.Status = "fila"
+		Matchmaking.Queue = append(Matchmaking.Queue, client)
+		fmt.Println("Cliente entrou na fila:", client.User)
+		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
+	}else{
+		services.SendResponse(conn, "error", "Você já está na fila", nil)
+		return
 	}
 
-	client.Status = "fila"
-	Matchmaking.Queue = append(Matchmaking.Queue, client)
-
-	fmt.Println("Cliente entrou na fila:", client.User)
-
-	// Mostra a fila atual
+	//Mostra a fila atual
 	names := []string{}
 	for _, c := range Matchmaking.Queue {
 		names = append(names, c.User)
 	}
 	fmt.Println("Fila atual:", names)
 
-	services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
 }
 
+
+func HandleDeck(conn net.Conn, req shared.Request){
+	fmt.Println("Eita escolhendo")
+	
+	//listo todas as cartas que o usuario tem com os indices
+	//faço ele digitar o nome/numero da carta que ele quer no deck (5 cartas)
+
+}
 
 func HandlePack(){
 	fmt.Println("Pack do server uau")
+
 }
+
 /*
 func getUsersQueue() []string {
 	names := []string{}
@@ -197,6 +207,7 @@ func StartMatchmaking(){
 	}
 }
 
+//LEMBRA DE ATUALIZAR O STATUS DO CLIENTE QUANDO ACABAR O JOGO
 func notifyClient(player1, player2 *services.Cliente){
 	go services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
 	go services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)

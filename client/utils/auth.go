@@ -1,18 +1,15 @@
 package utils
 
 import (
+	"PBL/shared"
 	"bufio"
 	"os"
 )
 
+var initialCards = []string{"AGUA","TERRA", "FOGO", "AR"}
 
-type User struct{
-	UserName string
-	Password string 
-}
-
-func Cadastro() User{
-	var user User
+func Cadastro() shared.User{
+	var user shared.User
 	reader := bufio.NewReader(os.Stdin)
 
 	print("Insira o nome do usuário: ")
@@ -20,14 +17,16 @@ func Cadastro() User{
 	print("Insira a senha desejada: ")
 	user.Password = ReadLine(reader)
 
+	user.Cards = initialCards
+
 	print(user.UserName)
 	print(user.Password)
 
 	return user
 }
 
-func Login() User{
-	var user User
+func Login() shared.User{
+	var user shared.User
 	reader := bufio.NewReader(os.Stdin)
 	print("Insira o nome do usuário: ")
 	user.UserName = ReadLine(reader)

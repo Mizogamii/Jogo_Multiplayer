@@ -48,8 +48,9 @@ func ShowMenuLogin(conn net.Conn) string{
 		fmt.Println("           Menu           ")
 		fmt.Println("--------------------------")
 		fmt.Println("1 - Entrar na fila")
-		fmt.Println("2 - Abrir pacote")
-		fmt.Println("3 - Deslogar")
+		fmt.Println("2 - Ver/alterar deck")
+		fmt.Println("3 - Abrir pacote")
+		fmt.Println("4 - Deslogar")
 		fmt.Print("Insira a opção desejada: ")
 		input := ReadLine(reader)
 		return input
@@ -117,7 +118,6 @@ func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bo
     }
 }
 
-
 func ShowWaitingScreen(stopChan chan bool) {
     frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
     i := 0
@@ -131,5 +131,18 @@ func ShowWaitingScreen(stopChan chan bool) {
             i++
             time.Sleep(100 * time.Millisecond)
         }
+    }
+}
+
+func ListCards(user interface{}) {
+	fmt.Println("Testando entrada na função list")
+	u, ok := user.(shared.User)
+	if !ok{
+		fmt.Println("ERRO: Usuário invãlido")
+		return
+	}
+
+    for i, card := range u.Cards {
+        fmt.Printf("%d: %s\n", i+1, card)
     }
 }

@@ -3,6 +3,7 @@ package shared
 type User struct {
 	UserName string `json:"username"`
 	Password string `json:"password"`
+	Cards []string `json:"cards"`
 }
 
 type Request struct{

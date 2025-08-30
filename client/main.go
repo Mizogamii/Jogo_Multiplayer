@@ -72,16 +72,21 @@ func main() {
 				go utils.ShowWaitingScreen(stopChan)
 
 			case "2":
+				utils.ListCards(user)
+				action = "DECK"
+				fmt.Println("DECK")
+
+			case "3":
 				action = "PACK"
 				fmt.Println("PACK")
 
-			case "3":
+			case "4":
 				action = "EXIT"
 				fmt.Println("Deslogado com sucesso!")
 				os.Exit(1)
 
 			default:
-				fmt.Println("ERRO: Digite apenas números de 1 a 3")
+				fmt.Println("ERRO: Digite apenas números de 1 a 4")
 				continue
 			}
 

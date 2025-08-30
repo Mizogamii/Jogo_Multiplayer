@@ -5,6 +5,13 @@ import(
     "sync"
 )
 
+type RoomStatus string
+
+const (
+    InProgress RoomStatus = "INPROGRESS"
+    Finished RoomStatus = "FINISHED"
+)
+
 type Matchmaking struct {
     Queue []*services.Cliente
     Mu sync.Mutex
@@ -13,4 +20,6 @@ type Matchmaking struct {
 type Room struct {
     Player1 *services.Cliente
     Player2 *services.Cliente
+    Status RoomStatus
+    Turn *services.Cliente
 }
