@@ -104,7 +104,11 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
 			fmt.Println("Login ok")
-			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", cliente)
+			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", shared.User{
+				UserName: cliente.User,
+				Cards: cliente.Cards,
+				Deck: []string{},
+			})
 			return cliente, true
 		}
 	}
@@ -115,45 +119,55 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 func HandlePlay(conn net.Conn, req shared.Request) {
 	fmt.Println("Play do server uau")
 
+	// desserializa o JSON do req.Data para a struct User
 	var user shared.User
-	data, _ := json.Marshal(req.Data)
-	json.Unmarshal(data, &user)
+	
+	if err := json.Unmarshal(req.Data, &user); err != nil {
+		fmt.Println("Erro ao desserializar User:", err)
+		services.SendResponse(conn, "error", "Falha ao ler dados do usuário", nil)
+		return
+	}
+
 	userName := user.UserName
+	fmt.Println("Nome do usuário:", userName)
 
 	client := services.GetClientByName(userName)
 	if client == nil {
-		fmt.Println("Cliente não logado: ", userName)
+		fmt.Println("Cliente não logado:", userName)
 		services.SendResponse(conn, "error", "Usuário não está logado", nil)
 		return
 	}
 
+	fmt.Println("Status cliente:", client.Status)
+
 	Matchmaking.Mu.Lock()
 	defer Matchmaking.Mu.Unlock()
 
-	if client.Status == "livre"{
+	if client.Status == "livre" {
 		client.Status = "fila"
 		Matchmaking.Queue = append(Matchmaking.Queue, client)
 		fmt.Println("Cliente entrou na fila:", client.User)
 		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
-	}else{
+	} else {
 		services.SendResponse(conn, "error", "Você já está na fila", nil)
 		return
 	}
 
-	//Mostra a fila atual
+	// Mostra a fila atual
 	names := []string{}
 	for _, c := range Matchmaking.Queue {
 		names = append(names, c.User)
 	}
 	fmt.Println("Fila atual:", names)
-
 }
+
 
 //listo todas as cartas que o usuario tem com os indices
 //faço ele digitar o nome/numero da carta que ele quer no deck (5 cartas)
 
 func HandleDeck(conn net.Conn, req shared.Request) {
 	fmt.Println("deck")
+	//faço essa lógica depois
 }
 	
 
@@ -223,3 +237,4 @@ func loadCards(userName string, conn net.Conn,) []string{
 	
 	return user.Cards
 }
+

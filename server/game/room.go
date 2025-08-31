@@ -4,17 +4,25 @@ import (
 	"PBL/server/models"
 	"PBL/server/services"
 	"fmt"
+	"math/rand"
 )
 
 func CreateRoom(player1, player2 *services.Cliente){
+	var turn *services.Cliente
+	if rand.Intn(2) == 0{
+		turn = player1
+	}else{
+		turn = player2
+	}
+	
 	room := models.Room{
 		Player1: player1,
 		Player2: player2,
-		/*Status: ,
-		Turn: */
+		Turn: turn,
 	}
 
 	fmt.Println(room)
 	player1.Status = "jogando"
 	player2.Status = "jogando"
+	
 }

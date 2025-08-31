@@ -1,19 +1,16 @@
 package main
 
 import (
+	"PBL/client/gameClient"
 	"PBL/client/utils"
 	"PBL/shared"
 	"encoding/json"
+
+	//"encoding/json"
 	"fmt"
 	"net"
 	"os"
 )
-
-type LoggedUser struct{
-	UserName string
-	Cards []string
-	Deck []string
-}
 
 func main() {
 	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
@@ -31,7 +28,7 @@ func main() {
 	go utils.ListenServer(conn, respChan, stopChan)
 
 	var loginOk bool
-	var currentUser LoggedUser
+	var currentUser shared.User
 	
 	for{
 		if !loginOk{
@@ -53,7 +50,8 @@ func main() {
 				continue
 			}
 
-			err := utils.SendRequest(conn, operationType, requestData) 
+
+			err = utils.SendRequest(conn, operationType, requestData) 
 			if err != nil{
 				fmt.Println("Erro:", err)
 				continue
@@ -66,10 +64,18 @@ func main() {
 			if resp.Status == "successLogin"{
 				loginOk = true
 
-				dataBytes, _ := json.Marshal(resp.Data)
 				var serverUser shared.User
-				json.Unmarshal(dataBytes, &serverUser)
-				currentUser = LoggedUser{
+				//json.Unmarshal(dataBytes, &serverUser)
+
+				dataBytes, _ := json.Marshal(resp.Data)
+				if err := json.Unmarshal(dataBytes, &serverUser); err != nil{
+					fmt.Println("Erro ao desserializar dados do login: ", err)
+					continue
+				}
+
+				fmt.Println("Nome inicio tets: ", serverUser.UserName)
+
+				currentUser = shared.User{
 					UserName: serverUser.UserName,
 					Cards:    serverUser.Cards,
 					Deck:     []string{},
@@ -90,7 +96,7 @@ func main() {
 				go utils.ShowWaitingScreen(stopChan)
 
 			case "2":
-				ListCards(currentUser)
+				utils.ListCards(currentUser)
 				action = "DECK"
 				fmt.Println("DECK")
 
@@ -108,29 +114,30 @@ func main() {
 				continue
 			}
 
-			err := utils.SendRequest(conn, action, currentUser) 
+
+			if err != nil {
+    			fmt.Println("Erro ao converter currentUser para JSON:", err)
+    			continue
+			}
+
+			fmt.Println("Enviando para o servidor:", currentUser.UserName, currentUser.Cards, currentUser.Deck)
+
+			err = utils.SendRequest(conn, action, currentUser) 
+
 			if err != nil{
 				fmt.Println("Erro:", err)
-				continue
 			}
 
 			resp := <-respChan
 
 			if resp.Status == "match" {
 				fmt.Printf("Oponente encontrado: %v\n", resp.Data)
+				choiceCard := gameClient.ShowGame(currentUser)
+				fmt.Println(choiceCard)
+				
 			} else {
 				fmt.Println("Resposta do servidor:", resp.Status, resp.Message, resp.Data)
 			}
 		}
 	}	
-}
-
-func ListCards(user LoggedUser) {
-	fmt.Println("--------------------------")
-	fmt.Println("          Cartas          ")
-	fmt.Println("--------------------------")
-	for i, card := range user.Cards {
-		fmt.Printf("%d: %s\n", i+1, card)
-	}
-	fmt.Println("--------------------------")
 }

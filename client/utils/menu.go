@@ -57,28 +57,13 @@ func ShowMenuLogin(conn net.Conn) string{
 	}
 }
 
-func ShowMenuGame(){
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("--------------------------")
-	fmt.Println("           Menu           ")
-	fmt.Println("--------------------------")
-	fmt.Println("1 - Escolher carta") //a ideia seria aqui ser a parte de montar o deck 
-	//tenho que ver que jogo vou fazer agora já que não tenho tanto tempo mais...
-	//deixo o usuário escolher 5 cartas para o deck e faço lutar com esses? 
-	//as cartas especiais seriam as cartas só decoradas?
-
-	fmt.Print("Insira a opção desejada: ")
-	input := ReadLine(reader)
-	fmt.Println(input) //só pra não dar erro mesmo depois eu contnuo
-}
-
 //Função para fazer input com espaçamentos e etc
 func ReadLine(reader *bufio.Reader) string {
 	text, _ := reader.ReadString('\n')
 	return strings.TrimSpace(text)
 }
 
-func SendRequest(conn net.Conn, action string, data interface{}) error {
+/*func SendRequest(conn net.Conn, action string, data json.RawMessage) error {
 	req := shared.Request{
 			Action: action,
 			Data: data,
@@ -92,11 +77,37 @@ func SendRequest(conn net.Conn, action string, data interface{}) error {
 
 		_, err = conn.Write(jsonData)
 		if err != nil{
-			return fmt.Errorf("Erro ao enviar para o servidor: %w", err)
+			return fmt.Errorf("erro ao enviar para o servidor: %w", err)
 		}
 	
     	return nil
+}*/
+
+func SendRequest(conn net.Conn, action string, data interface{}) error {
+    // converte data para json.RawMessage
+    rawData, err := json.Marshal(data)
+    if err != nil {
+        return fmt.Errorf("erro ao converter data para JSON: %w", err)
+    }
+
+    req := shared.Request{
+        Action: action,
+        Data:   rawData,
+    }
+
+    jsonData, err := json.Marshal(req)
+    if err != nil {
+        return fmt.Errorf("erro ao converter request para JSON: %w", err)
+    }
+
+    _, err = conn.Write(jsonData)
+    if err != nil {
+        return fmt.Errorf("erro ao enviar para o servidor: %w", err)
+    }
+
+    return nil
 }
+
 
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
     decoder := json.NewDecoder(conn)
@@ -132,4 +143,14 @@ func ShowWaitingScreen(stopChan chan bool) {
             time.Sleep(100 * time.Millisecond)
         }
     }
+}
+
+func ListCards(user shared.User) {
+	fmt.Println("--------------------------")
+	fmt.Println("          Cartas          ")
+	fmt.Println("--------------------------")
+	for i, card := range user.Cards {
+		fmt.Printf("%d: %s\n", i+1, card)
+	}
+	fmt.Println("--------------------------")
 }
