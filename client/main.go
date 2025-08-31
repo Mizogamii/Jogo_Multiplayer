@@ -29,19 +29,19 @@ func main() {
 
 	var loginOk bool
 	var currentUser shared.User
-	
-	for{
-		if !loginOk{
-			operationType := utils.Menu()
-			var requestData interface{}	
 
-			switch operationType{
+	for {
+		if !loginOk {
+			operationType := utils.Menu()
+			var requestData interface{}
+
+			switch operationType {
 			case "REGISTER":
 				requestData = utils.Cadastro()
 
 			case "LOGIN":
 				requestData = utils.Login()
-			
+
 			case "EXIT":
 				fmt.Println("Saindo...")
 				return
@@ -50,25 +50,24 @@ func main() {
 				continue
 			}
 
-
-			err = utils.SendRequest(conn, operationType, requestData) 
-			if err != nil{
+			err = utils.SendRequest(conn, operationType, requestData)
+			if err != nil {
 				fmt.Println("Erro:", err)
 				continue
 			}
 
-			resp := <-respChan 
+			resp := <-respChan
 
 			fmt.Println("Resposta do servidor:", resp.Status, resp.Message)
 
-			if resp.Status == "successLogin"{
+			if resp.Status == "successLogin" {
 				loginOk = true
 
 				var serverUser shared.User
 				//json.Unmarshal(dataBytes, &serverUser)
 
 				dataBytes, _ := json.Marshal(resp.Data)
-				if err := json.Unmarshal(dataBytes, &serverUser); err != nil{
+				if err := json.Unmarshal(dataBytes, &serverUser); err != nil {
 					fmt.Println("Erro ao desserializar dados do login: ", err)
 					continue
 				}
@@ -81,19 +80,40 @@ func main() {
 					Deck:     []string{},
 				}
 
-			}else{
+			} else {
 				fmt.Println("ERRO Login inválido: ", resp.Message)
 			}
 
-		}else{
+		} else {
 			operationTypeLogin := utils.ShowMenuLogin(conn)
 			var action string
 
-			switch operationTypeLogin{
+			switch operationTypeLogin {
 			case "1":
 				action = "PLAY"
 				fmt.Println("PLAY")
 				go utils.ShowWaitingScreen(stopChan)
+				err = utils.SendRequest(conn, action, currentUser)
+    			if err != nil {
+        			fmt.Println("Erro:", err)
+        			continue
+    			}
+				for{
+					resp := <-respChan
+					fmt.Printf("DEBUG - Resposta completa: Status='%s', Message='%s', Data='%v', Tipo Data: %T\n", resp.Status, resp.Message, resp.Data, resp.Data)
+
+					if resp.Status == "match" {
+						stopChan <- true
+						fmt.Printf("Oponente encontrado: %v\n", resp.Data)
+						gameClient.ShowGame(currentUser)
+					}else if resp.Status == "successPlay"{
+						fmt.Println("Aguardando oponente...")
+					}else{
+						fmt.Println("Resposta inesperada:", resp.Status)
+            			break
+					}
+				}
+					continue
 
 			case "2":
 				utils.ListCards(currentUser)
@@ -114,30 +134,24 @@ func main() {
 				continue
 			}
 
-
 			if err != nil {
-    			fmt.Println("Erro ao converter currentUser para JSON:", err)
-    			continue
+				fmt.Println("Erro ao converter currentUser para JSON:", err)
+				continue
 			}
+			if action != "PLAY"{
+				err = utils.SendRequest(conn, action, currentUser)
 
-			fmt.Println("Enviando para o servidor:", currentUser.UserName, currentUser.Cards, currentUser.Deck)
-
-			err = utils.SendRequest(conn, action, currentUser) 
-
-			if err != nil{
-				fmt.Println("Erro:", err)
+				if err != nil {
+					fmt.Println("Erro:", err)
+					continue
+				}
 			}
-
+			
 			resp := <-respChan
 
-			if resp.Status == "match" {
-				fmt.Printf("Oponente encontrado: %v\n", resp.Data)
-				choiceCard := gameClient.ShowGame(currentUser)
-				fmt.Println(choiceCard)
-				
-			} else {
-				fmt.Println("Resposta do servidor:", resp.Status, resp.Message, resp.Data)
-			}
+			fmt.Println("Printando resp: ", resp.Status)
+			
 		}
-	}	
+	}
 }
+

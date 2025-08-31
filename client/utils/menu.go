@@ -63,26 +63,6 @@ func ReadLine(reader *bufio.Reader) string {
 	return strings.TrimSpace(text)
 }
 
-/*func SendRequest(conn net.Conn, action string, data json.RawMessage) error {
-	req := shared.Request{
-			Action: action,
-			Data: data,
-		}
-
-		jsonData, err := json.Marshal(req)
-		if err != nil{
-			fmt.Println("Erro ao converter json: ", err)	
-			return fmt.Errorf("ERRO: Conversão json peba %w", err)
-		}
-
-		_, err = conn.Write(jsonData)
-		if err != nil{
-			return fmt.Errorf("erro ao enviar para o servidor: %w", err)
-		}
-	
-    	return nil
-}*/
-
 func SendRequest(conn net.Conn, action string, data interface{}) error {
     // converte data para json.RawMessage
     rawData, err := json.Marshal(data)
@@ -118,14 +98,8 @@ func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bo
             close(respChan)
             return
         }
-
-        switch resp.Status {
-        case "match":
-            stopChan <- true
-            fmt.Printf("\nPartida encontrada contra %v!\n", resp.Data)
-        default:
-            respChan <- resp
-        }
+        
+        respChan <- resp
     }
 }
 

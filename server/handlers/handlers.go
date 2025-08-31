@@ -147,7 +147,7 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 		client.Status = "fila"
 		Matchmaking.Queue = append(Matchmaking.Queue, client)
 		fmt.Println("Cliente entrou na fila:", client.User)
-		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
+		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil) 
 	} else {
 		services.SendResponse(conn, "error", "Você já está na fila", nil)
 		return
@@ -159,6 +159,7 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 		names = append(names, c.User)
 	}
 	fmt.Println("Fila atual:", names)
+
 }
 
 
@@ -207,8 +208,13 @@ func StartMatchmaking(){
 			player1 := Matchmaking.Queue[0]
 			player2 := Matchmaking.Queue[1]
 
+			fmt.Printf("DEBUG Matchmaking - Encontrando match: %s vs %s\n", player1.User, player2.User)
+
 			Matchmaking.Queue = Matchmaking.Queue[2:]
 			
+			player1.Status = "jogando"
+			player2.Status = "jogando"
+
 			Matchmaking.Mu.Unlock()
 
 			fmt.Println("Queue: ", Matchmaking.Queue)
@@ -224,8 +230,11 @@ func StartMatchmaking(){
 
 //LEMBRA DE ATUALIZAR O STATUS DO CLIENTE QUANDO ACABAR O JOGO
 func notifyClient(player1, player2 *services.Cliente){
-	go services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
-	go services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
+    fmt.Printf("DEBUG Servidor - Notificando %s sobre match com %s\n", player1.User, player2.User)
+    fmt.Printf("DEBUG Servidor - Notificando %s sobre match com %s\n", player2.User, player1.User)
+    
+    services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
+    services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
 }
 
 func loadCards(userName string, conn net.Conn,) []string{
