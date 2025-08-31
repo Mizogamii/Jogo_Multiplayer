@@ -42,39 +42,6 @@ func DelUsers(cliente *Cliente) {
 	fmt.Println("Usuários online:", GetUsersOnline())
 }
 
-func GetUsersOnline() []string {
-	names := []string{}
-	listUsersLock.Lock()
-	defer listUsersLock.Unlock()
-	for _, c := range listUsersOnline {
-		names = append(names, c.User)
-	}
-	return names
-}
-
-func GetClientByName(userName string) *Cliente{
-    listUsersLock.Lock()
-    defer listUsersLock.Unlock()
-
-    for _, c := range listUsersOnline {
-        if c.User == userName {
-			fmt.Println("O nome do cara ai: ", c)
-            return c
-        }
-    }
-    return nil 
-}
-
-func UserOnline(userName string) bool{
-	online := GetUsersOnline()
-	for _, i := range online{
-		if i == userName {
-			return true
-		}
-	}
-	return false
-}
-
 func CheckUser(newUser shared.User) bool {
 	user, err := storage.LoadUser(newUser.UserName)
 	if err != nil {
@@ -127,6 +94,51 @@ func SetStatus(username, status string){
 	}
 }
 
+
+func GetUsersOnline() []string {
+	names := []string{}
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+	for _, c := range listUsersOnline {
+		names = append(names, c.User)
+	}
+	return names
+}
+
+func GetClientByName(userName string) *Cliente{
+    listUsersLock.Lock()
+    defer listUsersLock.Unlock()
+
+    for _, c := range listUsersOnline {
+        if c.User == userName {
+			fmt.Println("O nome do cara ai: ", c)
+            return c
+        }
+    }
+    return nil 
+}
+
+func UserOnline(userName string) bool{
+	online := GetUsersOnline()
+	for _, i := range online{
+		if i == userName {
+			return true
+		}
+	}
+	return false
+}
+
+func GetClientByConn(conn net.Conn) *Cliente {
+	listUsersLock.Lock()
+	defer listUsersLock.Unlock()
+
+	for _, c := range listUsersOnline {
+		if c.Connection == conn {
+			return c
+		}
+	}
+	return nil
+}
 
 
 

@@ -5,6 +5,8 @@ import(
     "sync"
 )
 
+var GameRooms = make(map[string]*Room)
+
 type RoomStatus string
 
 const (

@@ -19,3 +19,8 @@ type Response struct {
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
+
+type Card struct {
+	nameCard string `json:"name"`
+
+}

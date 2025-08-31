@@ -15,14 +15,14 @@ func CreateRoom(player1, player2 *services.Cliente){
 		turn = player2
 	}
 	
-	room := models.Room{
+	room := &models.Room{
 		Player1: player1,
 		Player2: player2,
 		Turn: turn,
 	}
 
 	fmt.Println(room)
-	player1.Status = "jogando"
-	player2.Status = "jogando"
-	
+
+	models.GameRooms[player1.User] = room
+	models.GameRooms[player2.User] = room
 }

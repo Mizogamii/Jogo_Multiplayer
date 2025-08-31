@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"PBL/server/game"
 	"PBL/server/models"
 	"PBL/server/services"
 	"PBL/server/storage"
+	"PBL/server/game"
 	"PBL/shared"
 	"encoding/json"
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var (
+var ( 
 	Matchmaking = &models.Matchmaking{
 		Queue: make([]*services.Cliente, 0),
 		Mu: sync.Mutex{},
@@ -54,6 +54,26 @@ func HandleConnection(conn net.Conn) {
 		case "PACK":
 			HandlePack()
 
+		case "CARD":
+			var card string
+			client := services.GetClientByConn(conn)
+			fmt.Print("Debugando essa merda")
+			
+			if client == nil{
+				fmt.Println("Cliente não encontrado")
+				break
+			}
+
+			room := models.GameRooms[client.User]
+			if room == nil{
+				fmt.Println("Sala não encotrada para o cliete: ", client.User)
+				break
+			}
+			dataBytes, _ := json.Marshal(req.Data)
+			json.Unmarshal(dataBytes, &card)
+
+			game.HandleRound(room, client, card)
+		
 		default:
 			return
 		}
@@ -66,7 +86,7 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 	data, _ := json.Marshal(req.Data)
 	json.Unmarshal(data, &user)
 
-	fmt.Println("Usuário recebido: ", user.UserName)
+	fmt.Println("☻Usuário recebido: ", user.UserName)
 	fmt.Println("Cartas: ", user.Cards)
 
 	exists := services.CheckUser(user)
@@ -177,28 +197,6 @@ func HandlePack(){
 	//tem que fazer uma função que adiociona as cartas dos pacotes no json do usuario. lembra de ffazer 
 
 }
-
-/*
-func getUsersQueue() []string {
-	names := []string{}
-	Matchmaking.Mu.Lock()
-	defer Matchmaking.Mu.Unlock()
-	for _, c := range Matchmaking.Queue {
-		names = append(names, c.User)
-	}
-	return names
-}
-
-func inQueue(userName string) bool{
-	in := getUsersQueue()
-	for _, i := range in{
-		if i == userName {
-			return true
-		}
-	}
-	return false
-}*/
-
 
 func StartMatchmaking(){
 	for{
