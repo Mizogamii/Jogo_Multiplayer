@@ -87,7 +87,6 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 	json.Unmarshal(data, &user)
 
 	fmt.Println("☻Usuário recebido: ", user.UserName)
-	fmt.Println("Cartas: ", user.Cards)
 
 	exists := services.CheckUser(user)
 	if !exists {
@@ -97,7 +96,6 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 	
 		} else {
 			services.SendResponse(conn, "successRegister", "Cadastro realizado", nil)
-			fmt.Println("Cadastro ok")
 		}
 	} else {
 		services.SendResponse(conn, "error", "Usuário já existe", nil)
@@ -112,7 +110,6 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 
 	exists := services.CheckUser(user)
 	if exists {
-		fmt.Println("Existe ai")
 		if !services.UserOnline(user.UserName) {
 			cliente := &services.Cliente{
 				Connection: conn,
@@ -123,7 +120,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 			}
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
-			fmt.Println("Login ok")
+	
 			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", shared.User{
 				UserName: cliente.User,
 				Cards: cliente.Cards,
@@ -137,7 +134,6 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 }
 
 func HandlePlay(conn net.Conn, req shared.Request) {
-	fmt.Println("Play do server uau")
 
 	// desserializa o JSON do req.Data para a struct User
 	var user shared.User

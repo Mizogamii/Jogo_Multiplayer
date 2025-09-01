@@ -18,6 +18,7 @@ func Cadastro() shared.User{
 	user.Password = ReadLine(reader)
 
 	user.Cards = initialCards
+	user.Deck = initialCards
 
 	print(user.UserName)
 	print(user.Password)
@@ -32,6 +33,7 @@ func Login() shared.User{
 	user.UserName = ReadLine(reader)
 	print("Insira a sua senha: ")
 	user.Password = ReadLine(reader)
+
 	return user
 }
 

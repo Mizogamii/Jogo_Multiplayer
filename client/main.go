@@ -5,8 +5,6 @@ import (
 	"PBL/client/utils"
 	"PBL/shared"
 	"encoding/json"
-
-	//"encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -14,6 +12,7 @@ import (
 
 func main() {
 	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
+	//Modifiquei demais e agora nao tá ridando pelo docker CONSERTE DEPOIS
 	conn, err := net.Dial("tcp", "localhost:8080") //para teste local
 	if err != nil {
 		fmt.Println("Erro ao conectar:", err)
