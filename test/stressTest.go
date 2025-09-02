@@ -13,6 +13,15 @@ type TestRoom struct {
 	Players []string
 }
 
+type Metrics struct {
+	Latencies  []time.Duration
+	QueueTimes []time.Duration
+	Messages   int
+	mu         sync.Mutex
+}
+
+var metrics = Metrics{}
+
 var (
 	CreateRoomsTest []TestRoom
 	QueueTest       []string
@@ -22,7 +31,7 @@ var (
 
 func main() {
 	numClients := 5
-	wg.Add(numClients) 
+	wg.Add(numClients)
 
 	for i := 1; i <= numClients; i++ {
 		go simulateClient(i)
@@ -38,6 +47,9 @@ func main() {
 	}
 	fmt.Println("Clientes ainda na fila:", QueueTest)
 	fmt.Println("---------------------------")
+
+	// Relatório de desempenho
+	reportMetrics()
 }
 
 func simulateClient(id int) {
@@ -45,36 +57,72 @@ func simulateClient(id int) {
 
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {
-		fmt.Printf("Cliente %d: erro ao conectar: %v\n", id, err)
+		fmt.Printf("Cliente %d não conseguiu conectar: %v\n", id, err)
 		return
 	}
 	defer conn.Close()
 
-	fmt.Printf("Cliente %d conectado\n", id)
+	start := time.Now()
 
-	respChan := make(chan shared.Response)
+	// canal para receber respostas do servidor
+	respChan := make(chan shared.Response, 10)
 	stopChan := make(chan bool)
-
 	go utils.ListenServer(conn, respChan, stopChan)
 
+	// cadastro
 	simulateRegister(conn, id)
 	time.Sleep(50 * time.Millisecond)
+
+	// login
 	simulateLogin(conn, id)
 	time.Sleep(50 * time.Millisecond)
+
+	// entra na fila
 	simulateEnterQueue(conn, id)
 
-	for resp := range respChan {
-		mu.Lock()
-		switch resp.Status {
-		case "match":
-			CreateRoomsTest = append(CreateRoomsTest, TestRoom{
-				Players: []string{idToName(id), resp.Data.(string)},
-			})
-		case "successPlay":
-			QueueTest = append(QueueTest, idToName(id))
+	timeout := time.After(5 * time.Second) // cliente escuta por no máximo 5s
+
+	for {
+		select {
+		case resp, ok := <-respChan:
+			if !ok {
+				return
+			}
+
+			metrics.mu.Lock()
+			metrics.Messages++
+			metrics.mu.Unlock()
+
+			switch resp.Status {
+			case "match":
+				elapsed := time.Since(start)
+				metrics.mu.Lock()
+				metrics.Latencies = append(metrics.Latencies, elapsed)
+				metrics.mu.Unlock()
+
+				mu.Lock()
+				CreateRoomsTest = append(CreateRoomsTest, TestRoom{
+					Players: []string{idToName(id), fmt.Sprintf("%v", resp.Data)},
+				})
+				mu.Unlock()
+
+				fmt.Printf("Cliente %d entrou em partida: %+v\n", id, resp)
+				return
+
+			case "successPlay":
+				mu.Lock()
+				QueueTest = append(QueueTest, idToName(id))
+				mu.Unlock()
+				fmt.Printf("Cliente %d na fila...\n", id)
+
+			default:
+				fmt.Printf("Cliente %d recebeu: %+v\n", id, resp)
+			}
+
+		case <-timeout:
+			fmt.Printf("Cliente %d timeout, encerrando\n", id)
+			return
 		}
-		mu.Unlock()
-		fmt.Printf("Cliente %d recebeu: %+v\n", id, resp)
 	}
 }
 
@@ -120,4 +168,53 @@ func simulateEnterQueue(conn net.Conn, id int) {
 
 func idToName(id int) string {
 	return fmt.Sprintf("teste%d", id)
+}
+
+// --- Relatório de métricas ---
+func reportMetrics() {
+	metrics.mu.Lock()
+	defer metrics.mu.Unlock()
+
+	var total time.Duration
+	for _, l := range metrics.Latencies {
+		total += l
+	}
+
+	avgLatency := time.Duration(0)
+	if len(metrics.Latencies) > 0 {
+		avgLatency = total / time.Duration(len(metrics.Latencies))
+	}
+
+	fmt.Println("===== RELATÓRIO DE DESEMPENHO =====")
+	fmt.Printf("Mensagens recebidas: %d\n", metrics.Messages)
+	fmt.Printf("Latência média: %v\n", avgLatency)
+	fmt.Printf("Latência mínima: %v\n", min(metrics.Latencies))
+	fmt.Printf("Latência máxima: %v\n", max(metrics.Latencies))
+	fmt.Println("===================================")
+}
+
+func min(vals []time.Duration) time.Duration {
+	if len(vals) == 0 {
+		return 0
+	}
+	m := vals[0]
+	for _, v := range vals {
+		if v < m {
+			m = v
+		}
+	}
+	return m
+}
+
+func max(vals []time.Duration) time.Duration {
+	if len(vals) == 0 {
+		return 0
+	}
+	m := vals[0]
+	for _, v := range vals {
+		if v > m {
+			m = v
+		}
+	}
+	return m
 }
