@@ -14,10 +14,7 @@ func Cadastro() shared.User{
 	user.UserName = ReadLine(reader)
 	print("Insira a senha desejada: ")
 	user.Password = ReadLine(reader)
-
-	print(user.UserName)
-	print(user.Password)
-
+	
 	return user
 }
 

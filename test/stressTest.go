@@ -23,7 +23,7 @@ type Metrics struct {
 var metrics = Metrics{}
 
 var (
-	CreateRoomsTest []TestRoom
+	CreateRoomsTest = make(map[string]TestRoom) // agora é um map
 	QueueTest       []string
 	mu              sync.Mutex
 	wg              sync.WaitGroup
@@ -42,8 +42,10 @@ func main() {
 	// Relatório final
 	fmt.Println("----- RELATÓRIO FINAL -----")
 	fmt.Println("Salas criadas:")
-	for i, sala := range CreateRoomsTest {
-		fmt.Printf("Sala %d: %v\n", i+1, sala.Players)
+	i := 1
+	for _, sala := range CreateRoomsTest {
+		fmt.Printf("Sala %d: %v\n", i, sala.Players)
+		i++
 	}
 	fmt.Println("Clientes ainda na fila:", QueueTest)
 	fmt.Println("---------------------------")
@@ -100,10 +102,20 @@ func simulateClient(id int) {
 				metrics.Latencies = append(metrics.Latencies, elapsed)
 				metrics.mu.Unlock()
 
+				p1 := idToName(id)
+				p2 := fmt.Sprintf("%v", resp.Data)
+
+				// ordena os nomes para evitar duplicação
+				if p1 > p2 {
+					p1, p2 = p2, p1
+				}
+
+				key := fmt.Sprintf("%s|%s", p1, p2)
+
 				mu.Lock()
-				CreateRoomsTest = append(CreateRoomsTest, TestRoom{
-					Players: []string{idToName(id), fmt.Sprintf("%v", resp.Data)},
-				})
+				if _, ok := CreateRoomsTest[key]; !ok {
+					CreateRoomsTest[key] = TestRoom{Players: []string{p1, p2}}
+				}
 				mu.Unlock()
 
 				fmt.Printf("Cliente %d entrou em partida: %+v\n", id, resp)

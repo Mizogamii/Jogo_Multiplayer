@@ -57,7 +57,7 @@ func main() {
 
 			resp := <-respChan
 
-			fmt.Println("Resposta do servidor:", resp.Status, resp.Message)
+			fmt.Println("\n", resp.Message)
 
 			if resp.Status == "successLogin" {
 				loginOk = true
@@ -70,15 +70,13 @@ func main() {
 					continue
 				}
 
-				fmt.Println("Nome inicio tets: ", serverUser.UserName)
-
 				currentUser = shared.User{
 					UserName: serverUser.UserName,
 					Cards:    serverUser.Cards,
 					Deck:     []string{},
 				}
 
-			} else {
+			} else if resp.Status != "successRegister" && resp.Status != "successLogin"{
 				fmt.Println("ERRO Login inválido: ", resp.Message)
 			}
 

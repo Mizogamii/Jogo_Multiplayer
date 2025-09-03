@@ -99,7 +99,7 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 			services.SendResponse(conn, "error", "Falha ao salvar usuário.", nil)
 	
 		} else {
-			services.SendResponse(conn, "successRegister", "Cadastro realizado", nil)
+			services.SendResponse(conn, "successRegister", "Cadastro realizado com sucesso", nil)
 		}
 	} else {
 		services.SendResponse(conn, "error", "Usuário já existe", nil)
@@ -238,7 +238,7 @@ func notifyClient(player1, player2 *services.Cliente){
 func loadCards(userName string, conn net.Conn,) []string{
 	user, err := storage.LoadUser(userName)
 	if err != nil {
-		fmt.Println("Erro ao carregar usuários:", err)
+		fmt.Println("Erro ao carregar usuários:", err) 
 		return nil
 	}
 	

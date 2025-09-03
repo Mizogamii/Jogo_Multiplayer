@@ -13,9 +13,9 @@ import (
 
 func Menu() string{
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("\n--------------------------")
-	fmt.Println("       Menu Inicial       ")
-	fmt.Println("--------------------------")
+	fmt.Println("\n--------------------------------")
+	fmt.Println("           Menu Inicial           ")
+	fmt.Println("--------------------------------")
 	fmt.Println("1 - Cadastro")
 	fmt.Println("2 - Login")
 	fmt.Println("3 - Sair")
@@ -44,9 +44,9 @@ func Menu() string{
 func ShowMenuLogin(conn net.Conn) string{
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Println("--------------------------")
-		fmt.Println("           Menu           ")
-		fmt.Println("--------------------------")
+		fmt.Println("\n--------------------------------")
+		fmt.Println("              Menu              ")
+		fmt.Println("--------------------------------")
 		fmt.Println("1 - Entrar na fila")
 		fmt.Println("2 - Ver/alterar deck")
 		fmt.Println("3 - Abrir pacote")
@@ -120,11 +120,11 @@ func ShowWaitingScreen(stopChan chan bool) {
 }
 
 func ListCards(user shared.User) {
-	fmt.Println("--------------------------")
-	fmt.Println("          Cartas          ")
-	fmt.Println("--------------------------")
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Cartas             ")
+	fmt.Println("--------------------------------")
 	for i, card := range user.Cards {
 		fmt.Printf("%d: %s\n", i+1, card)
 	}
-	fmt.Println("--------------------------")
+	fmt.Println("--------------------------------")
 }

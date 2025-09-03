@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 )
 
-func getDataDir() string {
+func GetDataDir() string {
 	cwd, _ := os.Getwd()
 	return filepath.Join(cwd, "data")
 }
 
 func getUsersFilePath(userName string) string {
-	return filepath.Join(getDataDir(), userName+".json")
+	return filepath.Join(GetDataDir(), userName+".json")
 }
 
 func SaveUsers(newUser shared.User) error {
@@ -23,7 +23,7 @@ func SaveUsers(newUser shared.User) error {
 		return err
 	}
 
-	dir := getDataDir()
+	dir := GetDataDir()
 
 	//Cria a pasta se não existir
 	err = os.MkdirAll(dir, os.ModePerm)
@@ -57,5 +57,3 @@ func LoadUser(userName string) (shared.User, error) {
 	}
 	return user, nil
 }
-
-
