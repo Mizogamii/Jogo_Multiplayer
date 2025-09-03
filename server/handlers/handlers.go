@@ -82,11 +82,15 @@ func HandleConnection(conn net.Conn) {
 
 func HandleRegister(conn net.Conn, req shared.Request) {
 	var user shared.User
-
+	var initialCards = []string{"AGUA","TERRA", "FOGO", "AR"}
+	
 	data, _ := json.Marshal(req.Data)
 	json.Unmarshal(data, &user)
 
 	fmt.Println("☻Usuário recebido: ", user.UserName)
+
+	user.Cards = initialCards
+	user.Deck = initialCards
 
 	exists := services.CheckUser(user)
 	if !exists {

@@ -112,19 +112,7 @@ func main() {
 					default:
 						fmt.Println("Resposta inesperada:", resp.Status)
 					}
-
-					/*if resp.Status == "match" {
-						stopChan <- true
-						gameClient.StartGame(conn, currentUser, respChan)
-
-					} else if resp.Status == "successPlay" {
-						fmt.Println("Aguardando oponente...")
-					} else {
-						fmt.Println("Resposta inesperada:", resp.Status)
-						break
-					}*/
 				}
-				continue
 
 			case "2":
 				utils.ListCards(currentUser)

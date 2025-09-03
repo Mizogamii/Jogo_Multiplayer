@@ -24,4 +24,6 @@ type Room struct {
     Player2 *services.Cliente
     Status RoomStatus
     Turn *services.Cliente
+    CardP1 string
+    CardP2 string
 }

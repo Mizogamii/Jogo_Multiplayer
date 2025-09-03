@@ -1,6 +1,16 @@
 {
   "username": "teste5",
   "password": "123",
-  "cards": null,
-  "deck": null
+  "cards": [
+    "AGUA",
+    "TERRA",
+    "FOGO",
+    "AR"
+  ],
+  "deck": [
+    "AGUA",
+    "TERRA",
+    "FOGO",
+    "AR"
+  ]
 }

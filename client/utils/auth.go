@@ -6,8 +6,6 @@ import (
 	"os"
 )
 
-var initialCards = []string{"AGUA","TERRA", "FOGO", "AR"}
-
 func Cadastro() shared.User{
 	var user shared.User
 	reader := bufio.NewReader(os.Stdin)
@@ -16,9 +14,6 @@ func Cadastro() shared.User{
 	user.UserName = ReadLine(reader)
 	print("Insira a senha desejada: ")
 	user.Password = ReadLine(reader)
-
-	user.Cards = initialCards
-	user.Deck = initialCards
 
 	print(user.UserName)
 	print(user.Password)

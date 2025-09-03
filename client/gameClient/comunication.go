@@ -11,27 +11,34 @@ import (
 
 func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Response){
 	fmt.Println("Partida iniciada!")
-	for{
-		resp := <- respChan
-		switch resp.Status{
-		case "yourTurn":
-			fmt.Println("Sua vez! Pode jogar meu parceiro!")
-			
-			card := ShowGame(currentUser)
-			err := utils.SendRequest(conn, "CARD", card)
-			fmt.Println("Mandou a carta: ", card)
-			if err != nil {
-				fmt.Println("Erro ao enviar carta:", err)
-				continue	
-			}
-		case "opponentPlayed":
-			fmt.Println("Oponente jogou: ", resp.Data)
-		
-		case "gameOver":
-			fmt.Println("Cabou")
-			return
-		}
-	}
+	turnChan := make(chan bool) // canal para sinalizar que é a vez do jogador
+
+// goroutine que lê do servidor
+go func() {
+    for resp := range respChan {
+        switch resp.Status {
+        case "yourTurn":
+            turnChan <- true // sinaliza que é a vez
+        case "opponentPlayed":
+            fmt.Println("Oponente jogou:", resp.Data)
+        case "gameResult":
+            fmt.Println("Resultado:", resp.Message)
+        case "gameOver":
+            fmt.Println("Cabou")
+            return
+        }
+    }
+}()
+
+for {
+    <-turnChan 
+    card := ShowGame(currentUser) // aqui bloqueia só pra entrada do jogador
+    err := utils.SendRequest(conn, "CARD", card)
+    if err != nil {
+        fmt.Println("Erro ao enviar carta:", err)
+    }
+}
+
 }
 
 func ShowGame(user shared.User) string{
