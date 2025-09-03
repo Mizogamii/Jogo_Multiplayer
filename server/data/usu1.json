@@ -1,6 +1,6 @@
 {
   "username": "usu1",
-  "password": "123",
+  "password": "",
   "cards": [
     "AGUA",
     "TERRA",
@@ -8,9 +8,9 @@
     "AR"
   ],
   "deck": [
-    "AGUA",
-    "TERRA",
+    "AR",
     "FOGO",
-    "AR"
+    "TERRA",
+    "AGUA"
   ]
 }

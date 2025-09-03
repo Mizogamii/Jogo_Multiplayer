@@ -121,6 +121,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 				Login:      true,
 				Status:     "livre",
 				Cards: loadCards(user.UserName, conn),
+				Deck: loadDeck(user.UserName, conn),
 			}
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
@@ -128,7 +129,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 			services.SendResponse(conn, "successLogin", "Login realizado com sucesso.", shared.User{
 				UserName: cliente.User,
 				Cards: cliente.Cards,
-				Deck: []string{},
+				Deck: cliente.Deck,
 			})
 			return cliente, true
 		}
@@ -182,15 +183,28 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 
 }
 
-
-//listo todas as cartas que o usuario tem com os indices
-//faço ele digitar o nome/numero da carta que ele quer no deck (5 cartas)
-
+//só lembrando: o usuario não pode colocar a mesma carta no deck, então tenho que fazer ele digitar o numero sem repetir RESOLVE ISSO
+//ta ddando problema aaui resolve depois 
 func HandleDeck(conn net.Conn, req shared.Request) {
-	fmt.Println("deck")
-	//faço essa lógica depois
+    var user shared.User
+
+    dataBytes, _ := json.Marshal(req.Data)
+    if err := json.Unmarshal(dataBytes, &user); err != nil {
+        services.SendResponse(conn, "error", "Erro ao processar dados do deck.", nil)
+        return
+    }
+
+    fmt.Println("Atualizando deck do usuário:", user.UserName)
+
+    err := storage.SaveUsers(user)
+    if err != nil {
+        services.SendResponse(conn, "error", "Falha ao salvar deck.", nil)
+        return
+    }
+
+    services.SendResponse(conn, "successUpdateDeck", "Deck atualizado com sucesso!", nil)
 }
-	
+
 
 func HandlePack(){
 	fmt.Println("Pack do server uau")
@@ -243,5 +257,15 @@ func loadCards(userName string, conn net.Conn,) []string{
 	}
 	
 	return user.Cards
+}
+
+func loadDeck(userName string, conn net.Conn,) []string{
+	user, err := storage.LoadUser(userName)
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err) 
+		return nil
+	}
+	
+	return user.Deck
 }
 

@@ -112,8 +112,8 @@ func main() {
 					}
 				}
 
-			case "2":
-				utils.ListCards(currentUser)
+			case "2": //tá com problema RESOLVE
+				gameClient.ChoiceDeck(currentUser)
 				action = "DECK"
 				fmt.Println("DECK")
 

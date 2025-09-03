@@ -128,3 +128,27 @@ func ListCards(user shared.User) {
 	}
 	fmt.Println("--------------------------------")
 }
+
+func ListCadsDeck(user shared.User) {
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Deck             ")
+	fmt.Println("--------------------------------")
+	for i, card := range user.Deck {
+		fmt.Printf("%d: %s\n", i+1, card)
+	}
+	fmt.Println("--------------------------------")
+}
+
+func ShowMenuDeck() string{
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("\n--------------------------------")
+		fmt.Println("            Menu deck           ")
+		fmt.Println("--------------------------------")
+		fmt.Println("1 - Vizualizar todas as cartas")
+		fmt.Println("2 - Vizualizar cartas do deck")
+		fmt.Println("3 - Alterar o deck")
+		fmt.Println("4 - Voltar ao menu principal")
+		fmt.Print("Insira a opção desejada: ")
+		input := ReadLine(reader)
+		return input
+}
