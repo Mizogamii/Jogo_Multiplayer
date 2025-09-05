@@ -69,7 +69,7 @@ func ShowGame(user shared.User) string {
 
 		switch inputInt {
 		case 0:
-			return "EXIT"
+			return "EXITROOM"
 		case 1:
 			return user.Deck[0]
 		case 2:

@@ -18,6 +18,19 @@ func getUsersFilePath(userName string) string {
 }
 
 func SaveUsers(newUser shared.User) error {
+	// Carregar usuário existente
+	oldUser, err := LoadUser(newUser.UserName)
+	if err == nil {
+		//Se o campo de senha veio vazio, mantém a antiga
+		if newUser.Password == "" {
+			newUser.Password = oldUser.Password
+		}
+		//Se o deck não veio, mantém o antigo
+		if len(newUser.Deck) == 0 {
+			newUser.Deck = oldUser.Deck
+		}
+	}
+
 	data, err := json.MarshalIndent(newUser, "", "  ")
 	if err != nil {
 		return err
@@ -25,7 +38,6 @@ func SaveUsers(newUser shared.User) error {
 
 	dir := GetDataDir()
 
-	//Cria a pasta se não existir
 	err = os.MkdirAll(dir, os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("falha ao criar pasta: %w", err)

@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"PBL/server/game"
 	"PBL/server/models"
 	"PBL/server/services"
 	"PBL/server/storage"
-	"PBL/server/game"
 	"PBL/shared"
 	"encoding/json"
 	"fmt"
@@ -30,14 +30,21 @@ func HandleConnection(conn net.Conn) {
 		err := decoder.Decode(&req)
 
 		if err != nil {
+    		client := services.GetClientByConn(conn)
+
 			if err == io.EOF {
-        		fmt.Println("Cliente desconectou")
-        		return
+				fmt.Println("Conexão fechada de:", client.User)
+			}else{
+				fmt.Println("Conexão perdida de:", client.User, "-", err)
 			}
-			fmt.Println("Erro ao ler ou decodificar JSON:", err)
+
+			if client != nil {
+				services.DelUsers(client)
+			}
 			return
 		}
 
+		fmt.Println("Usuários online:", services.GetUsersOnline())
 		switch req.Action {
 		case "REGISTER":
     		HandleRegister(conn, req)
@@ -73,7 +80,13 @@ func HandleConnection(conn net.Conn) {
 			json.Unmarshal(dataBytes, &card)
 
 			game.HandleRound(room, client, card)
-		
+
+		case "EXIT":
+			fmt.Println("EXIT pedido testando")
+			client := services.GetClientByConn(conn)
+			services.DelUsers(client)
+			fmt.Println(services.GetUsersOnline())
+
 		default:
 			return
 		}

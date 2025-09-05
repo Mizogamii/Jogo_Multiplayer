@@ -31,7 +31,7 @@ func main() {
 
 	for {
 		if !loginOk {
-			operationType := utils.Menu()
+			operationType := utils.Menu(conn)
 			var requestData interface{}
 
 			switch operationType {
@@ -42,8 +42,8 @@ func main() {
 				requestData = utils.Login()
 
 			case "EXIT":
-				fmt.Println("Saindo...")
-				return
+				fmt.Println("Saindo...")				
+				
 			default:
 				fmt.Println("ERRO: Opção inválida.")
 				continue
@@ -113,7 +113,7 @@ func main() {
 					}
 				}
 
-			case "2": //tá com problema RESOLVE
+			case "2": 
 				gameClient.ChoiceDeck(currentUser)
 				action = "DECK"
 				fmt.Println("DECK")
@@ -125,6 +125,10 @@ func main() {
 			case "4":
 				action = "EXIT"
 				fmt.Println("Deslogado com sucesso!")
+				err = utils.SendRequest(conn, action, currentUser)
+				if err != nil {
+					fmt.Println("Erro:", err)
+				}
 				os.Exit(1)
 
 			default:
@@ -136,6 +140,7 @@ func main() {
 				fmt.Println("Erro ao converter currentUser para JSON:", err)
 				continue
 			}
+
 			if action != "PLAY" {
 				err = utils.SendRequest(conn, action, currentUser)
 

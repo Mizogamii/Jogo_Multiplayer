@@ -3,11 +3,11 @@ package game
 func CheckWinner(card1, card2 string) string{
 	//O retorno é o resultado do player 1, depois é apenas comparado: se player 1 perdeu, o player 2 ganhou. Caso o contrário, o player 2 perdeu. E em caso de empate, vai ser empate para os dois. 
 
-	if card1 == "EXIT" {
+	if card1 == "EXITROOM" {
 		return "P1-EXIT"
 	}
 
-	if card1 == "EXIT" {
+	if card1 == "EXITROOM" {
 		return "P2-EXIT"
 	}
 	

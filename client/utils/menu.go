@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Menu() string{
+func Menu(conn net.Conn) string{
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Println("\n--------------------------------")
 	fmt.Println("           Menu Inicial           ")
@@ -30,15 +30,14 @@ func Menu() string{
 		return "LOGIN"
 
 	case "3":
-		fmt.Println("Saindo...")
-		os.Exit(1) //isso pra não voltar pra o menu princiapl --> o usuario sai do servidor
-	
+		fmt.Println("Saindo...") 
+		conn.Close() 
+		return "EXIT"
+		
 	default:
 		fmt.Print("ERRO! Digite apenas números de 1 a 3")
 		return ""
 	}
-	
-	return ""
 }
 
 func ShowMenuLogin(conn net.Conn) string{

@@ -34,15 +34,16 @@ func AddUsers(cliente *Cliente) {
 
 func DelUsers(cliente *Cliente) {
 	listUsersLock.Lock()
-	defer listUsersLock.Unlock()
 	for i, j := range listUsersOnline {
-		if j == cliente { // compara ponteiros
+		if j == cliente { 
 			listUsersOnline = append(listUsersOnline[:i], listUsersOnline[i+1:]...)
 			break
 		}
 	}
+	listUsersLock.Unlock()
 	fmt.Println("Usuários online:", GetUsersOnline())
 }
+
 
 func CheckUser(newUser shared.User) bool {
 	user, err := storage.LoadUser(newUser.UserName)
