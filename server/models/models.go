@@ -26,4 +26,9 @@ type Room struct {
     Turn *services.Cliente
     CardP1 string
     CardP2 string
+
+    ScoreP1 int
+    ScoreP2 int
+
+    Rounds int
 }

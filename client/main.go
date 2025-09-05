@@ -72,8 +72,9 @@ func main() {
 
 				currentUser = shared.User{
 					UserName: serverUser.UserName,
+					Password: serverUser.Password,
 					Cards:    serverUser.Cards,
-					Deck:     []string{},
+					Deck:     serverUser.Deck,
 				}
 
 			} else if resp.Status != "successRegister" && resp.Status != "successLogin"{

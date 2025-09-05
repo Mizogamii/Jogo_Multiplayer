@@ -57,38 +57,44 @@ func ShowMenuLogin(conn net.Conn) string{
 	}
 }
 
-//Função para fazer input com espaçamentos e etc
-func ReadLine(reader *bufio.Reader) string {
-	text, _ := reader.ReadString('\n')
-	return strings.TrimSpace(text)
-}
-
-func SendRequest(conn net.Conn, action string, data interface{}) error {
-    // converte data para json.RawMessage
-    rawData, err := json.Marshal(data)
-    if err != nil {
-        return fmt.Errorf("erro ao converter data para JSON: %w", err)
-    }
-
-    req := shared.Request{
-        Action: action,
-        Data:   rawData,
-    }
-
-    jsonData, err := json.Marshal(req)
-    if err != nil {
-        return fmt.Errorf("erro ao converter request para JSON: %w", err)
-    }
-
-    _, err = conn.Write(jsonData)
-    if err != nil {
-        return fmt.Errorf("erro ao enviar para o servidor: %w", err)
-    }
-
-    return nil
+func ShowMenuDeck() string{
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Println("\n--------------------------------")
+		fmt.Println("            Menu deck           ")
+		fmt.Println("--------------------------------")
+		fmt.Println("1 - Visualizar todas as cartas")
+		fmt.Println("2 - Visualizar cartas do deck")
+		fmt.Println("3 - Alterar o deck")
+		fmt.Println("4 - Voltar ao menu principal")
+		fmt.Print("Insira a opção desejada: ")
+		input := ReadLine(reader)
+		return input
 }
 
 
+func ListCards(user shared.User) {
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Cartas             ")
+	fmt.Println("--------------------------------")
+	for i, card := range user.Cards {
+		fmt.Printf("%d: %s\n", i+1, card)
+	}
+	fmt.Println("--------------------------------")
+}
+
+func ListCardsDeck(user shared.User) {
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Deck             ")
+	fmt.Println("--------------------------------")
+	for i, card := range user.Deck {
+		fmt.Printf("%d: %s\n", i+1, card)
+	}
+	fmt.Println("--------------------------------")
+}
+
+
+
+//AS FUNÇÕES DAQUI PRA BAIXO DEVERIAM IR PARA OUTRO CANTO, ESSE AQUI É SÓ PARA MENUS
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
     decoder := json.NewDecoder(conn)
     for {
@@ -119,36 +125,33 @@ func ShowWaitingScreen(stopChan chan bool) {
     }
 }
 
-func ListCards(user shared.User) {
-	fmt.Println("\n--------------------------------")
-	fmt.Println("             Cartas             ")
-	fmt.Println("--------------------------------")
-	for i, card := range user.Cards {
-		fmt.Printf("%d: %s\n", i+1, card)
-	}
-	fmt.Println("--------------------------------")
+//Função para fazer input com espaçamentos e etc
+func ReadLine(reader *bufio.Reader) string {
+	text, _ := reader.ReadString('\n')
+	return strings.TrimSpace(text)
 }
 
-func ListCadsDeck(user shared.User) {
-	fmt.Println("\n--------------------------------")
-	fmt.Println("             Deck             ")
-	fmt.Println("--------------------------------")
-	for i, card := range user.Deck {
-		fmt.Printf("%d: %s\n", i+1, card)
-	}
-	fmt.Println("--------------------------------")
-}
+func SendRequest(conn net.Conn, action string, data interface{}) error {
+    // converte data para json.RawMessage
+    rawData, err := json.Marshal(data)
+    if err != nil {
+        return fmt.Errorf("erro ao converter data para JSON: %w", err)
+    }
 
-func ShowMenuDeck() string{
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("\n--------------------------------")
-		fmt.Println("            Menu deck           ")
-		fmt.Println("--------------------------------")
-		fmt.Println("1 - Vizualizar todas as cartas")
-		fmt.Println("2 - Vizualizar cartas do deck")
-		fmt.Println("3 - Alterar o deck")
-		fmt.Println("4 - Voltar ao menu principal")
-		fmt.Print("Insira a opção desejada: ")
-		input := ReadLine(reader)
-		return input
+    req := shared.Request{
+        Action: action,
+        Data:   rawData,
+    }
+
+    jsonData, err := json.Marshal(req)
+    if err != nil {
+        return fmt.Errorf("erro ao converter request para JSON: %w", err)
+    }
+
+    _, err = conn.Write(jsonData)
+    if err != nil {
+        return fmt.Errorf("erro ao enviar para o servidor: %w", err)
+    }
+
+    return nil
 }

@@ -1,40 +1,58 @@
 package game
 
-import "fmt"
-
 func CheckWinner(card1, card2 string) string{
-	fmt.Println("Eita a lógica")
+	//O retorno é o resultado do player 1, depois é apenas comparado: se player 1 perdeu, o player 2 ganhou. Caso o contrário, o player 2 perdeu. E em caso de empate, vai ser empate para os dois. 
+
+	if card1 == "EXIT" {
+		return "P1-EXIT"
+	}
+
+	if card1 == "EXIT" {
+		return "P2-EXIT"
+	}
+	
 	switch card1{
 	case "FOGO":
-		if card2 == "AR" || card2 == "FOGO"{
+		switch card2 {
+		case "AR", "FOGO":
 			return "EMPATE"
-		}else if card2 == "TERRA"{
+		case "TERRA":
 			return "GANHOU"
-		}else if card2 == "AGUA"{
+		case "AGUA", "MATO":
 			return "PERDEU"
 		}
 	case "AGUA":
-		if card2 == "TERRA" || card2 == "AGUA"{
+		switch card2 {
+		case "TERRA", "AGUA":
 			return "EMPATE"
-		}else if card2 == "FOGO"{
+		case "FOGO":
 			return "GANHOU"
-		}else if card2 == "AR"{
+		case "AR", "MATO":
 			return "PERDEU"
 		}
 	case "TERRA":
-		if card2 == "AGUA" || card2 == "TERRA"{
+		switch card2 {
+		case "AGUA", "TERRA":
 			return "EMPATE"
-		}else if card2 == "AR"{
+		case "AR":
 			return "GANHOU"
-		}else if card2 == "FOGO"{
+		case "FOGO", "MATO":
 			return "PERDEU"
 		}
 	case "AR":
-		if card2 == "FOGO" || card2 == "AR"{
+		switch card2 {
+		case "FOGO", "AR":
 			return "EMPATE"
-		}else if card2 == "AGUA"{
+		case "AGUA":
 			return "GANHOU"
-		}else if card2 == "TERRA"{
+		case "TERRA", "MATO":
+			return "PERDEU"
+		}
+	case "MATO": //carta do mal. Só empata ou perde✨ //Essa carta vai estar nos pacotes.
+		switch card2 {
+		case "MATO":
+			return "EMPATE"
+		case "TERRA", "AGUA", "FOGO", "AR":
 			return "PERDEU"
 		}
 	}

@@ -14,6 +14,7 @@ type Cliente struct {
 	User    string
 	Login     bool
 	Status string
+	Password string
 	Cards []string
 	Deck []string
 }

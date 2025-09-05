@@ -2,7 +2,6 @@ package gameClient
 
 import (
 	"PBL/client/utils"
-	"PBL/server/storage"
 	"PBL/shared"
 	"bufio"
 	"fmt"
@@ -15,53 +14,76 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 	fmt.Println("Partida iniciada!")
 	turnChan := make(chan bool) 
 
-go func() {
-    for resp := range respChan {
-        switch resp.Status {
-        case "yourTurn":
-            turnChan <- true 
-        case "opponentPlayed":
-            fmt.Println("Oponente jogou:", resp.Data)
-        case "gameResult":
-            fmt.Println("Resultado:", resp.Message)
-        case "gameOver":
-            fmt.Println("Cabou")
-            return
-        }
-    }
-}()
+	go func() {
+		for resp := range respChan {
+			switch resp.Status {
+			case "yourTurn":
+				turnChan <- true 
 
-for {
-    <-turnChan 
-    card := ShowGame(currentUser) 
-    err := utils.SendRequest(conn, "CARD", card)
-    if err != nil {
-        fmt.Println("Erro ao enviar carta:", err)
-    }
-}
+			case "opponentPlayed":
+				fmt.Println("Oponente jogou:", resp.Data)
 
-}
+			case "gameResult":
+				fmt.Println("Resultado:", resp.Message)
 
-func ShowGame(user shared.User) string{
-	utils.ListCards(user)
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Insira a carta desejada: ")
-	input := utils.ReadLine(reader)	
-	
-	switch input{
-	case "1":
-		return  "AGUA"
-	case "2":
-		return  "TERRA"
-	case "3":
-		return "FOGO"
-	case "4":
-		return "AR"
+			case "gameResultExit": 
+				fmt.Println("Resultado:", resp.Message)
+				return
+
+			case "gamefinalResult":
+				fmt.Println("Fim do jogo!")
+				fmt.Println("Resultado:", resp.Message)
+				return
+			}
+		}
+	}()
+
+	for {
+		<-turnChan 
+		card := ShowGame(currentUser) 
+		err := utils.SendRequest(conn, "CARD", card)
+		if err != nil {
+			fmt.Println("Erro ao enviar carta:", err)
+		}
 	}
-	return ""
 }
 
-func ChoiceDeck(conn net.Conn, currentUser shared.User) {
+func ShowGame(user shared.User) string {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		utils.ListCardsDeck(user)
+		fmt.Print("Insira a carta desejada (0 para sair): ")
+
+		input := utils.ReadLine(reader)
+		inputInt, err := strconv.Atoi(input)
+		if err != nil {
+			fmt.Println("Entrada inválida! Digite um número entre 0 e 4.")
+			continue
+		}
+
+		if inputInt < 0 || inputInt > 4 {
+			fmt.Println("Número inválido! Escolha entre 0 e 4.")
+			continue
+		}
+
+		switch inputInt {
+		case 0:
+			return "EXIT"
+		case 1:
+			return user.Deck[0]
+		case 2:
+			return user.Deck[1]
+		case 3:
+			return user.Deck[2]
+		case 4:
+			return user.Deck[3]
+		}
+	}
+}
+
+
+func ChoiceDeck(currentUser shared.User) {
 	for {
 		option := utils.ShowMenuDeck()
 
@@ -72,10 +94,11 @@ func ChoiceDeck(conn net.Conn, currentUser shared.User) {
 
 		case "2":
 			//Lista apenas as cartas do deck atual
-			utils.ListCadsDeck(currentUser)
+			utils.ListCardsDeck(currentUser)
 
 		case "3":
 			//Montar novo deck
+			utils.ListCardsDeck(currentUser)
 			reader := bufio.NewReader(os.Stdin)
 
 			//Reinicia o deck antes de montar
@@ -106,10 +129,6 @@ func ChoiceDeck(conn net.Conn, currentUser shared.User) {
 
 			fmt.Println("Seu deck foi montado com sucesso:", currentUser.Deck)
 
-			err := utils.SendRequest(conn, "UPDATE_DECK", currentUser)
-			if err != nil{
-				fmt.Println("Erro ao atualizar dados.")
-			}
 		case "4":
 			//Voltar ao menu principal
 			return

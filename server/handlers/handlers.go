@@ -119,7 +119,8 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 				Connection: conn,
 				User:       user.UserName,
 				Login:      true,
-				Status:     "livre",
+				Status:     "livre", 
+				Password: user.Password,
 				Cards: loadCards(user.UserName, conn),
 				Deck: loadDeck(user.UserName, conn),
 			}
