@@ -56,6 +56,8 @@ func ShowGame(user shared.User) string {
 		fmt.Print("Insira a carta desejada (0 para sair): ")
 
 		input := utils.ReadLine(reader)
+		
+
 		inputInt, err := strconv.Atoi(input)
 		if err != nil {
 			fmt.Println("Entrada inválida! Digite um número entre 0 e 4.")
@@ -98,41 +100,44 @@ func ChoiceDeck(currentUser shared.User) {
 
 		case "3":
 			//Montar novo deck
-			utils.ListCardsDeck(currentUser)
+			utils.ListCards(currentUser)
 			reader := bufio.NewReader(os.Stdin)
 
 			//Reinicia o deck antes de montar
 			currentUser.Deck = []string{}
 
-			for i := 0; i < 4; i++ {
-				fmt.Print("Insira o número da carta desejada: ")
+			cardsChosen := make(map[int]bool) //para não repetir cartas no deck
+
+			for len(currentUser.Deck) < 4 {
+				fmt.Printf("Escolha a carta %d (1 a %d): ", len(currentUser.Deck)+1, len(currentUser.Cards))
 				input := utils.ReadLine(reader)
 				inputInt, err := strconv.Atoi(input)
 				if err != nil {
-					fmt.Println("Erro ao converter para número:", err)
-					i-- 
+					fmt.Println("Entrada inválida! Digite um número.")
 					continue
 				}
 
 				cardIndex := inputInt - 1
-
-				//Validação do índice
 				if cardIndex < 0 || cardIndex >= len(currentUser.Cards) {
 					fmt.Println("Número inválido! Tente novamente.")
-					i--
 					continue
 				}
 
-				fmt.Println("Carta escolhida:", currentUser.Cards[cardIndex])
+				if cardsChosen[cardIndex] {
+					fmt.Println("Carta já escolhida! Escolha outra.")
+					continue
+				}
+
+				//Adiciona a carta no deck
+				cardsChosen[cardIndex] = true
 				currentUser.Deck = append(currentUser.Deck, currentUser.Cards[cardIndex])
+				fmt.Println("Carta adicionada:", currentUser.Cards[cardIndex])
 			}
 
-			fmt.Println("Seu deck foi montado com sucesso:", currentUser.Deck)
+			fmt.Println("Deck montado com sucesso:", currentUser.Deck)
 
 		case "4":
-			//Voltar ao menu principal
 			return
-
 		default:
 			fmt.Println("Opção inválida!")
 		}

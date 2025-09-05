@@ -73,7 +73,7 @@ func ShowMenuDeck() string{
 
 func ListCards(user shared.User) {
 	fmt.Println("\n--------------------------------")
-	fmt.Println("             Cartas             ")
+	fmt.Println("           Suas cartas          ")
 	fmt.Println("--------------------------------")
 	for i, card := range user.Cards {
 		fmt.Printf("%d: %s\n", i+1, card)
@@ -83,7 +83,7 @@ func ListCards(user shared.User) {
 
 func ListCardsDeck(user shared.User) {
 	fmt.Println("\n--------------------------------")
-	fmt.Println("             Deck             ")
+	fmt.Println("            Seu deck            ")
 	fmt.Println("--------------------------------")
 	for i, card := range user.Deck {
 		fmt.Printf("%d: %s\n", i+1, card)
