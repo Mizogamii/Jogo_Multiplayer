@@ -108,6 +108,9 @@ func main() {
 						fmt.Println("Aguardando oponente...")
 					case "opponentPlayed":
 						fmt.Println("Oponente jogou:", resp.Data)
+					case "gamefinalResult":
+    					fmt.Println("Fim do jogo!")
+    					fmt.Println("Resultado:", resp.Message)
 					default:
 						fmt.Println("Resposta inesperada:", resp.Status)
 					}

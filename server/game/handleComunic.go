@@ -55,13 +55,15 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 		case "P1-EXIT":
 			//PLAYER 1 DESISTIU
 			//PLAYER 2 GANHOU
-			services.SendResponse(room.Player1.Connection, "gameResult", "Desistiu", nil)
-			services.SendResponse(room.Player2.Connection, "gameResult", "Ganhou!☻", nil)
+			room.Rounds = 3 //Para encerrar o jogo
+			services.SendResponse(room.Player1.Connection, "gameResultExit", "Desistiu", nil)
+			services.SendResponse(room.Player2.Connection, "gameResultExit", "Ganhou!☻", nil)
 			return
 			
 		case"P2-EXIT":
 			//PLAYER 1 GANHOU
 			//PLAYER 2 DESISTIU
+			room.Rounds = 3 //Para encerrar já que desistiu
 			services.SendResponse(room.Player1.Connection, "gameResultExit", "Ganhou!☻", nil)
 			services.SendResponse(room.Player2.Connection, "gameResultExit", "Desistiu", nil)
 			return
@@ -72,16 +74,16 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 
 		if room.Rounds >= 3 || room.ScoreP1 == 2 || room.ScoreP2 == 2 {
 			if room.ScoreP1 > room.ScoreP2 {
-				services.SendResponse(room.Player1.Connection, "finalResult", "Vitória final!", nil)
-				services.SendResponse(room.Player2.Connection, "finalResult", "Derrota final!", nil)
+				services.SendResponse(room.Player1.Connection, "gamefinalResult", "Vitória final!", nil)
+				services.SendResponse(room.Player2.Connection, "gamefinalResult", "Derrota final!", nil)
 
 			} else if room.ScoreP2 > room.ScoreP1 {
-				services.SendResponse(room.Player1.Connection, "finalResult", "Derrota final!", nil)
-				services.SendResponse(room.Player2.Connection, "finalResult", "Vitória final!", nil)
+				services.SendResponse(room.Player1.Connection, "gamefinalResult", "Derrota final!", nil)
+				services.SendResponse(room.Player2.Connection, "gamefinalResult", "Vitória final!", nil)
 
 			} else {
-				services.SendResponse(room.Player1.Connection, "finalResult", "Empate final!", nil)
-				services.SendResponse(room.Player2.Connection, "finalResult", "Empate final!", nil)
+				services.SendResponse(room.Player1.Connection, "gamefinalResult", "Empate final!", nil)
+				services.SendResponse(room.Player2.Connection, "gamefinalResult", "Empate final!", nil)
 			}
 		}
 	}

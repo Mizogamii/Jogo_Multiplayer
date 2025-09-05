@@ -97,16 +97,22 @@ func ListCardsDeck(user shared.User) {
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
     decoder := json.NewDecoder(conn)
     for {
-        var resp shared.Response
-        if err := decoder.Decode(&resp); err != nil {
-            fmt.Println("Erro ao receber mensagem do servidor:", err)
-            close(respChan)
+        select {
+        case <-stopChan:
+            fmt.Println("Encerrando ListenServer")
             return
+        default:
+            var resp shared.Response
+            if err := decoder.Decode(&resp); err != nil {
+                fmt.Println("Erro ao receber mensagem do servidor:", err)
+                close(respChan)
+                return
+            }
+            respChan <- resp
         }
-        
-        respChan <- resp
     }
 }
+
 
 func ShowWaitingScreen(stopChan chan bool) {
     frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
