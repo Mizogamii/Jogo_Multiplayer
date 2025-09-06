@@ -83,52 +83,47 @@ func main() {
 
 		} else {
 			operationTypeLogin := utils.ShowMenuLogin(conn)
-			var action string
 
 			switch operationTypeLogin {
 			case "1":
-				action = "PLAY"
-				fmt.Println("PLAY")
-				go utils.ShowWaitingScreen(stopChan)
-				err = utils.SendRequest(conn, action, currentUser)
+				err = utils.SendRequest(conn, "PLAY", currentUser)
 				if err != nil {
 					fmt.Println("Erro:", err)
 					continue
 				}
-				for {
+	
+				go utils.ShowWaitingScreen(stopChan)
+				
+				for{
 					resp := <-respChan
 					fmt.Printf("DEBUG - Resposta completa: Status='%s', Message='%s', Data='%v', Tipo Data: %T\n", resp.Status, resp.Message, resp.Data, resp.Data)
-
+	
 					//Deu match --> mostra a tela da partida
-					switch resp.Status{
-					case "match":
+					if resp.Status == "match"{
 						stopChan <- true
-						gameClient.StartGame(conn, currentUser, respChan)
-					case "successPlay":
-						fmt.Println("Aguardando oponente...")
-					case "opponentPlayed":
-						fmt.Println("Oponente jogou:", resp.Data)
-					case "gamefinalResult":
-    					fmt.Println("Fim do jogo!")
-    					fmt.Println("Resultado:", resp.Message)
-					default:
-						fmt.Println("Resposta inesperada:", resp.Status)
-					}
+						exitRequested := gameClient.StartGame(conn, currentUser, respChan)
+						if exitRequested {
+								loginOk = false
+								fmt.Println("Voltando ao menu principal...")
+						} else {
+							fmt.Println("Partida finalizada. Voltando ao menu...")
+						}
+							break // Sai do loop de aguardar match
+						}
 				}
 
 			case "2": 
 				gameClient.ChoiceDeck(currentUser)
-				action = "DECK"
+				utils.SendRequest(conn, "DECK", currentUser)
 				fmt.Println("DECK")
 
 			case "3":
-				action = "PACK"
+				utils.SendRequest(conn, "PACK", currentUser)
 				fmt.Println("PACK")
 
 			case "4":
-				action = "EXIT"
 				fmt.Println("Deslogado com sucesso!")
-				err = utils.SendRequest(conn, action, currentUser)
+				err = utils.SendRequest(conn, "EXIT", currentUser)
 				if err != nil {
 					fmt.Println("Erro:", err)
 				}
@@ -143,19 +138,6 @@ func main() {
 				fmt.Println("Erro ao converter currentUser para JSON:", err)
 				continue
 			}
-
-			if action != "PLAY" {
-				err = utils.SendRequest(conn, action, currentUser)
-
-				if err != nil {
-					fmt.Println("Erro:", err)
-					continue
-				}
-			}
-
-			resp := <-respChan
-
-			fmt.Println("Printando resp: ", resp.Status)
 
 		}
 	}

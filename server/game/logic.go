@@ -49,6 +49,7 @@ func CheckWinner(card1, card2 string) string{
 			return "PERDEU"
 		}
 	case "MATO": //carta do mal. Só empata ou perde✨ //Essa carta vai estar nos pacotes.
+	//Percebi agora que é só o usuário não colocar essa carta no deck...
 		switch card2 {
 		case "MATO":
 			return "EMPATE"

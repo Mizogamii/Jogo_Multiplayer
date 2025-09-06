@@ -21,6 +21,7 @@ func Menu(conn net.Conn) string{
 	fmt.Println("3 - Sair")
 	fmt.Print("Insira a opção desejada: ")
 	option := ReadLine(reader)
+	fmt.Println("DEBUG - input lido:", option)
 
 	switch option {
 	case "1": 
@@ -52,6 +53,7 @@ func ShowMenuLogin(conn net.Conn) string{
 		fmt.Println("4 - Deslogar")
 		fmt.Print("Insira a opção desejada: ")
 		input := ReadLine(reader)
+		fmt.Println("DEBUG - input lido:", input)
 		return input
 	}
 }

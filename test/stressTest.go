@@ -30,7 +30,7 @@ var (
 )
 
 func main() {
-	numClients := 10
+	numClients := 100
 	wg.Add(numClients)
 
 	for i := 1; i <= numClients; i++ {
