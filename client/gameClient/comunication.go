@@ -42,14 +42,14 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 		return false
 	}
 
-	// Função para verificar se terminou
+	//Função para verificar se terminou
 	isEnded := func() bool {
 		mu.Lock()
 		defer mu.Unlock()
 		return ended
 	}
 
-	// Goroutine para ler mensagens do servidor
+	//Goroutine para ler mensagens do servidor
 	go func() {
 		defer closeChannels()
 
@@ -87,7 +87,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 		}
 	}()
 
-	// Loop principal de jogadas
+	//Loop principal de jogadas
 	for {
 		select {
 		case <-turnChan:
@@ -98,7 +98,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 
 			card := ShowGame(currentUser, gameOver)
 			if card == "EXITROOM" {
-				if setEnded() { // se já estava ended, não processa
+				if setEnded() { 
 					return exitRequested
 				}
 				
@@ -123,7 +123,6 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 	}
 }
 
-// ShowGame agora recebe o canal gameOver
 func ShowGame(user shared.User, gameOver chan struct{}) string {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -131,7 +130,7 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 		utils.ListCardsDeck(user)
 		fmt.Print("Insira a carta desejada (0 para sair): ")
 
-		inputChan := make(chan string, 1) // buffered para evitar vazamento
+		inputChan := make(chan string, 1) 
 		go func() {
 			defer close(inputChan)
 			inputChan <- utils.ReadLine(reader)
@@ -210,7 +209,7 @@ func ChoiceDeck(currentUser shared.User) {
 					fmt.Println("Carta já escolhida! Escolha outra.")
 					continue
 				}
-
+				
 				//Adiciona a carta no deck
 				cardsChosen[cardIndex] = true
 				currentUser.Deck = append(currentUser.Deck, currentUser.Cards[cardIndex])

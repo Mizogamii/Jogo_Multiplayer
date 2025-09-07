@@ -1,12 +1,16 @@
 package main
 
 import (
+	"PBL/server/game"
+	"PBL/server/handlers"
 	"fmt"
 	"net"
-	"PBL/server/handlers"
 )
 
 func main() {
+
+	game.BuildGlobalDeck() //Contruindo deck global para os pacotes
+
 	go handlers.StartMatchmaking()
 
 	listener, err := net.Listen("tcp", ":8080")

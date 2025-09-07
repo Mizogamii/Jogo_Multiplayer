@@ -59,23 +59,6 @@ func CheckUser(newUser shared.User) bool {
 	return false
 }
 
-func SendMessage(senderUser string, receiver string, message string) string {
-	listUsersLock.Lock()
-	defer listUsersLock.Unlock()
-
-	for _, i := range listUsersOnline {
-		if i.User == receiver {
-			_, err := i.Connection.Write([]byte(fmt.Sprintf("%s: %s\n", senderUser, message)))
-			if err != nil {
-				return "ERRO: Falha ao enviar a mensagem\n"
-			}
-			return "OK"
-		}
-	}
-
-	return "ERRO: Usuário não está online.\n"
-}
-
 func SendResponse(conn net.Conn, status string, message string, data interface{}) {
     resp := shared.Response{
         Status:  status,
@@ -97,7 +80,6 @@ func SetStatus(username, status string){
 		}
 	}
 }
-
 
 func GetUsersOnline() []string {
 	names := []string{}
@@ -143,6 +125,5 @@ func GetClientByConn(conn net.Conn) *Cliente {
 	}
 	return nil
 }
-
 
 

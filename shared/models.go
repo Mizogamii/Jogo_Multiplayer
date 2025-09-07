@@ -21,6 +21,5 @@ type Response struct {
 }
 
 type Card struct {
-	nameCard string `json:"name"`
-
-}
+	NameCard string `json:"name"`
+}//Ideia futura, usar struct para as cartas e não string

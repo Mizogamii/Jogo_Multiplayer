@@ -96,16 +96,56 @@ func ListCardsDeck(user shared.User) {
 
 
 func ShowRules(){
-	fmt.Println("\n------------------------------------------------")
-	fmt.Println("                     Regras                     ")
-	fmt.Println("------------------------------------------------")
-	fmt.Println("🔥 FOGO - Forte contra TERRA, fraco contra ÁGUA")
-	fmt.Println("💧 ÁGUA - Forte contra FOGO, fraco contra AR")
-	fmt.Println("🌱 TERRA - Forte contra AR, fraco contra FOGO")
-	fmt.Println("💨 AR - Forte contra ÁGUA, fraco contra TERRA")
-	fmt.Println("🌿 MATO - Carta misteriosa")
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Regras             ")
+	fmt.Println("--------------------------------")
+	fmt.Println("Ao fazer o cadastro você recebeu\n5 cartas. Sendo elas: AGUA, TERRA, FOGO, AR e MATO")
+	fmt.Println("Cada carta tem seus pontos fortes\ne fracos:")
+	fmt.Println(" ÁGUA")
+	fmt.Println(" Forte contra FOGO")
+	fmt.Println(" Fraco contra AR")
+
+	fmt.Println("\n TERRA")
+	fmt.Println(" Forte contra AR")
+	fmt.Println(" Fraco contra FOGO")
+
+	fmt.Println("\n FOGO")
+	fmt.Println(" Forte contra TERRA")
+	fmt.Println(" Fraco contra ÁGUA")
+
+	fmt.Println("\n AR")
+	fmt.Println(" Forte contra ÁGUA")
+	fmt.Println(" Fraco contra TERRA")
+
+	fmt.Println("\n MATO")
+	fmt.Println(" Carta MISTERIOSA")
 
 }
+/*Com emoji
+func ShowRules2(){
+	fmt.Println("\n--------------------------------")
+	fmt.Println("             Regras             ")
+	fmt.Println("--------------------------------")
+	fmt.Println(" ÁGUA💧")
+	fmt.Println(" Forte contra FOGO")
+	fmt.Println(" Fraco contra AR")
+
+	fmt.Println("\n TERRA🌱")
+	fmt.Println(" Forte contra AR")
+	fmt.Println(" Fraco contra FOGO")
+
+	fmt.Println("\n FOGO🔥")
+	fmt.Println(" Forte contra TERRA")
+	fmt.Println(" Fraco contra ÁGUA")
+
+	fmt.Println("\n AR💨")
+	fmt.Println(" Forte contra ÁGUA")
+	fmt.Println(" Fraco contra TERRA")
+
+	fmt.Println("\n MATO🌿")
+	fmt.Println(" Carta MISTERIOSA")
+
+}*/
 
 //AS FUNÇÕES DAQUI PRA BAIXO DEVERIAM IR PARA OUTRO CANTO, ESSE AQUI É SÓ PARA MENUS
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {

@@ -1,8 +1,11 @@
 package game
 
+import "strings"
+
 func CheckWinner(card1, card2 string) string{
 	//O retorno é o resultado do player 1, depois é apenas comparado: se player 1 perdeu, o player 2 ganhou. Caso o contrário, o player 2 perdeu. E em caso de empate, vai ser empate para os dois. 
 
+	
 	if card1 == "EXITROOM" {
 		return "P1-EXIT"
 	}
@@ -11,6 +14,9 @@ func CheckWinner(card1, card2 string) string{
 		return "P2-EXIT"
 	}
 	
+	card1 = baseCard(card1)
+	card2 = baseCard(card2)
+
 	switch card1{
 	case "FOGO":
 		switch card2 {
@@ -58,4 +64,13 @@ func CheckWinner(card1, card2 string) string{
 		}
 	}
 	return ""
+}
+
+//Para não ter diferença entre cartas normais e especiais(elas são meramente ilustrativas)
+func baseCard(card string) string {
+    parts := strings.Fields(card) 
+    if len(parts) > 0 {
+        return parts[0]
+    }
+    return card
 }

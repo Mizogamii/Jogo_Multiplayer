@@ -117,11 +117,10 @@ func main() {
 			case "2": 
 				gameClient.ChoiceDeck(currentUser)
 				utils.SendRequest(conn, "DECK", currentUser)
-				fmt.Println("DECK")
 
 			case "3":
 				utils.SendRequest(conn, "PACK", currentUser)
-				fmt.Println("PACK")
+				utils.ListCards(currentUser)
 
 			case "4":
 				utils.ShowRules()
