@@ -32,7 +32,7 @@ func Menu(conn net.Conn) string{
 
 	case "3":
 		fmt.Println("Saindo...") 
-		//conn.Close() 
+		conn.Close() 
 		return "EXIT"
 		
 	default:
@@ -50,7 +50,8 @@ func ShowMenuLogin(conn net.Conn) string{
 		fmt.Println("1 - Entrar na fila")
 		fmt.Println("2 - Ver/alterar deck")
 		fmt.Println("3 - Abrir pacote")
-		fmt.Println("4 - Deslogar")
+		fmt.Println("4 - Visualizar regras")
+		fmt.Println("5 - Deslogar")
 		fmt.Print("Insira a opção desejada: ")
 		input := ReadLine(reader)
 		fmt.Println("DEBUG - input lido:", input)
@@ -94,6 +95,17 @@ func ListCardsDeck(user shared.User) {
 }
 
 
+func ShowRules(){
+	fmt.Println("\n------------------------------------------------")
+	fmt.Println("                     Regras                     ")
+	fmt.Println("------------------------------------------------")
+	fmt.Println("🔥 FOGO - Forte contra TERRA, fraco contra ÁGUA")
+	fmt.Println("💧 ÁGUA - Forte contra FOGO, fraco contra AR")
+	fmt.Println("🌱 TERRA - Forte contra AR, fraco contra FOGO")
+	fmt.Println("💨 AR - Forte contra ÁGUA, fraco contra TERRA")
+	fmt.Println("🌿 MATO - Carta misteriosa")
+
+}
 
 //AS FUNÇÕES DAQUI PRA BAIXO DEVERIAM IR PARA OUTRO CANTO, ESSE AQUI É SÓ PARA MENUS
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
@@ -135,7 +147,10 @@ func ShowWaitingScreen(stopChan chan bool) {
 //Função para fazer input com espaçamentos e etc
 func ReadLine(reader *bufio.Reader) string {
     for {
-        text, _ := reader.ReadString('\n')
+        text, err := reader.ReadString('\n')
+        if err != nil {
+            continue
+        }
         text = strings.TrimSpace(text)
         if text != "" {
             return text

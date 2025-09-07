@@ -124,6 +124,9 @@ func main() {
 				fmt.Println("PACK")
 
 			case "4":
+				utils.ShowRules()
+
+			case "5":
 				fmt.Println("Deslogado com sucesso!")
 				err = utils.SendRequest(conn, "LOGOUT", currentUser)
 				if err != nil {
@@ -133,7 +136,7 @@ func main() {
 				os.Exit(0)
 
 			default:
-				fmt.Println("ERRO: Digite apenas números de 1 a 4")
+				fmt.Println("ERRO: Digite apenas números de 1 a 5")
 				continue
 			}
 
