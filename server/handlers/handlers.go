@@ -31,20 +31,25 @@ func HandleConnection(conn net.Conn) {
 
 		if err != nil {
     		client := services.GetClientByConn(conn)
-
-			if err == io.EOF {
-				fmt.Println("Conexão fechada de:", client.User)
-			}else{
-				fmt.Println("Conexão perdida de:", client.User, "-", err)
-			}
-
-			if client != nil {
+ 			if client != nil {
+				if err == io.EOF {
+					fmt.Println("Conexão fechada de:", client.User)
+				}else{
+					fmt.Println("Conexão perdida de:", client.User, "-", err)
+				}
 				services.DelUsers(client)
+			}else{
+				if err == io.EOF{
+					fmt.Println("Conexão fechada de cliente desconhecido")
+				}else{
+					fmt.Println("Erro na conexão de cliente desconhecido: ", err)
+				}
 			}
 			return
 		}
 
 		fmt.Println("Usuários online:", services.GetUsersOnline())
+
 		switch req.Action {
 		case "REGISTER":
     		HandleRegister(conn, req)
@@ -64,7 +69,6 @@ func HandleConnection(conn net.Conn) {
 		case "CARD":
 			var card string
 			client := services.GetClientByConn(conn)
-			fmt.Print("Debugando essa merda")
 			
 			if client == nil{
 				fmt.Println("Cliente não encontrado")
@@ -73,7 +77,7 @@ func HandleConnection(conn net.Conn) {
 
 			room := models.GameRooms[client.User]
 			if room == nil{
-				fmt.Println("Sala não encotrada para o cliete: ", client.User)
+				fmt.Println("Sala não encotrada para o cliente: ", client.User)
 				break
 			}
 			dataBytes, _ := json.Marshal(req.Data)
@@ -81,13 +85,29 @@ func HandleConnection(conn net.Conn) {
 
 			game.HandleRound(room, client, card)
 
-		case "EXIT":
-			fmt.Println("EXIT pedido testando")
+		case "LOGOUT":
+    		fmt.Println("Logout pedido")
 			client := services.GetClientByConn(conn)
-			services.DelUsers(client)
-			fmt.Println(services.GetUsersOnline())
+			if client != nil {
+				client.Login = false
+				client.Status = "livre" 
+				services.DelUsers(client)
+				services.SendResponse(conn, "successLogout", "Você foi deslogado.", nil)
+			}
+			return
+		case "EXIT":
+    		fmt.Println("Saindo...")
+			client := services.GetClientByConn(conn)
+			if client != nil {
+				client.Login = false
+				client.Status = "livre" 
+				services.DelUsers(client)
+				services.SendResponse(conn, "successExit", "Você saiu.", nil)
+			}
+			return
 
 		default:
+			fmt.Println("Ação desconhecida recebida:", req.Action)
 			return
 		}
 	}

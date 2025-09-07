@@ -42,7 +42,9 @@ func main() {
 				requestData = utils.Login()
 
 			case "EXIT":
-				fmt.Println("Saindo...")				
+				fmt.Println("Saindo...")		
+				conn.Close()
+				os.Exit(0)		
 				
 			default:
 				fmt.Println("ERRO: Opção inválida.")
@@ -123,11 +125,12 @@ func main() {
 
 			case "4":
 				fmt.Println("Deslogado com sucesso!")
-				err = utils.SendRequest(conn, "EXIT", currentUser)
+				err = utils.SendRequest(conn, "LOGOUT", currentUser)
 				if err != nil {
 					fmt.Println("Erro:", err)
 				}
-				os.Exit(1)
+				conn.Close()
+				os.Exit(0)
 
 			default:
 				fmt.Println("ERRO: Digite apenas números de 1 a 4")

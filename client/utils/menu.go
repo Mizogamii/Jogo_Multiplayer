@@ -32,7 +32,7 @@ func Menu(conn net.Conn) string{
 
 	case "3":
 		fmt.Println("Saindo...") 
-		conn.Close() 
+		//conn.Close() 
 		return "EXIT"
 		
 	default:
@@ -134,9 +134,15 @@ func ShowWaitingScreen(stopChan chan bool) {
 
 //Função para fazer input com espaçamentos e etc
 func ReadLine(reader *bufio.Reader) string {
-	text, _ := reader.ReadString('\n')
-	return strings.TrimSpace(text)
+    for {
+        text, _ := reader.ReadString('\n')
+        text = strings.TrimSpace(text)
+        if text != "" {
+            return text
+        }
+    }
 }
+
 
 func SendRequest(conn net.Conn, action string, data interface{}) error {
     // converte data para json.RawMessage
