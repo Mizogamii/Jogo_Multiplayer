@@ -124,8 +124,8 @@ func HandleRegister(conn net.Conn, req shared.Request) {
 	user.Cards = []string{"AGUA", "TERRA", "FOGO", "AR", "MATO"}
 	user.Deck = []string{"AGUA", "TERRA", "FOGO", "AR"}
 
-	exists := services.CheckUser(user)
-	if !exists {
+	registerOk := services.CheckUser(user)
+	if registerOk {
 		err := storage.SaveUsers(user)
 		if err != nil {
 			services.SendResponse(conn, "error", "Falha ao salvar usuário.", nil)
@@ -144,7 +144,7 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 	data, _ := json.Marshal(req.Data)
 	json.Unmarshal(data, &user)
 
-	exists := services.CheckUser(user)
+	exists := services.CheckLogin(user)
 	if exists {
 		if !services.UserOnline(user.UserName) {
 			cliente := &services.Cliente{

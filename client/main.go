@@ -80,7 +80,7 @@ func main() {
 				}
 
 			} else if resp.Status != "successRegister" && resp.Status != "successLogin"{
-				fmt.Println("ERRO Login inválido: ", resp.Message)
+				fmt.Println("ERRO: ", resp.Message)
 			}
 
 		} else {

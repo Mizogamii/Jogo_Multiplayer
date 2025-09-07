@@ -45,6 +45,19 @@ func DelUsers(cliente *Cliente) {
 }
 
 
+func CheckLogin(newUser shared.User) bool {
+	user, err := storage.LoadUser(newUser.UserName)
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err) 
+		return false
+	}
+	
+	if user.UserName == newUser.UserName && user.Password == newUser.Password {
+		return true
+	}
+	return false
+}
+
 func CheckUser(newUser shared.User) bool {
 	user, err := storage.LoadUser(newUser.UserName)
 	if err != nil {
@@ -53,7 +66,7 @@ func CheckUser(newUser shared.User) bool {
 		return false
 	}
 	
-	if user.UserName == newUser.UserName && user.Password == newUser.Password {
+	if user.UserName != newUser.UserName && user.Password != newUser.Password {
 		return true
 	}
 	return false
