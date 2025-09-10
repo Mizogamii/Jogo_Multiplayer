@@ -1,0 +1,37 @@
+services:
+  servidor:
+    build:
+      context: .              
+      dockerfile: server/Dockerfile
+    ports:
+      - "8080:8080"
+
+  cliente1:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    depends_on:
+      - servidor
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+
+  cliente2:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    depends_on:
+      - servidor
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+
+  cliente3:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    depends_on:
+      - servidor
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
