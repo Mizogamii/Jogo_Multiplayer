@@ -3,6 +3,7 @@ package storage
 import (
 	"PBL/shared"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -18,36 +19,32 @@ func getUsersFilePath(userName string) string {
 }
 
 func SaveUsers(newUser shared.User) error {
-	// Carregar usuário existente
-	oldUser, err := LoadUser(newUser.UserName)
-	if err == nil {
-		//Se o campo de senha veio vazio, mantém a antiga
-		if newUser.Password == "" {
-			newUser.Password = oldUser.Password
-		}
-		//Se o deck não veio, mantém o antigo
-		if len(newUser.Deck) == 0 {
-			newUser.Deck = oldUser.Deck
-		}
-	}
+    //Carregar usuário existente
+    oldUser, err := LoadUser(newUser.UserName)
+    if err == nil {
+        //Manter a senha antiga se não vier
+        if newUser.Password == "" {
+            newUser.Password = oldUser.Password
+        }
+    }
 
-	data, err := json.MarshalIndent(newUser, "", "  ")
-	if err != nil {
-		return err
-	}
+    data, err := json.MarshalIndent(newUser, "", "  ")
+    if err != nil {
+        return err
+    }
 
-	dir := GetDataDir()
+    dir := GetDataDir()
+    err = os.MkdirAll(dir, os.ModePerm)
+    if err != nil {
+        return fmt.Errorf("falha ao criar pasta: %w", err)
+    }
 
-	err = os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("falha ao criar pasta: %w", err)
-	}
+    filePath := getUsersFilePath(newUser.UserName)
+    fmt.Println("Salvando em:", filePath)
 
-	filePath := getUsersFilePath(newUser.UserName)
-	fmt.Println("Salvando em:", filePath)
-
-	return os.WriteFile(filePath, data, 0644)
+    return os.WriteFile(filePath, data, 0644)
 }
+
 
 func LoadUser(userName string) (shared.User, error) {
 	var user shared.User
@@ -55,17 +52,20 @@ func LoadUser(userName string) (shared.User, error) {
 
 	data, err := os.ReadFile(filePath)
 	if err != nil{
+		if errors.Is(err, os.ErrNotExist){
+			return shared.User{}, fmt.Errorf("user não encontrado")
+		}
 		return user, err
 	}
 
 	if len(data) == 0{
 		fmt.Println("Arquivo vazio")
-		return user, nil
+		return shared.User{}, fmt.Errorf("user não encontrado")
 	}
 
 	err = json.Unmarshal(data, &user)
 	if err != nil {
-		return user, nil
+		return shared.User{}, err
 	}
 	return user, nil
 }

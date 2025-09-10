@@ -115,7 +115,7 @@ func main() {
 				}
 
 			case "2": 
-				gameClient.ChoiceDeck(currentUser)
+				gameClient.ChoiceDeck(conn, &currentUser)
 				utils.SendRequest(conn, "DECK", currentUser)
 
 			case "3":

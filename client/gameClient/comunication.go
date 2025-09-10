@@ -165,58 +165,46 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 	}
 }
 
-func ChoiceDeck(currentUser shared.User) {
+func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 	for {
 		option := utils.ShowMenuDeck()
 
 		switch option {
 		case "1":
-			//Lista todas as cartas do jogador
-			utils.ListCards(currentUser)
-
+			utils.ListCards(*currentUser)
 		case "2":
-			//Lista apenas as cartas do deck atual
-			utils.ListCardsDeck(currentUser)
-
+			utils.ListCardsDeck(*currentUser)
 		case "3":
-			//Montar novo deck
-			utils.ListCards(currentUser)
+			utils.ListCards(*currentUser)
 			reader := bufio.NewReader(os.Stdin)
-	
-
-			//Reinicia o deck antes de montar
 			currentUser.Deck = []string{}
-
-			cardsChosen := make(map[int]bool) //para não repetir cartas no deck
+			cardsChosen := make(map[int]bool)
 
 			for len(currentUser.Deck) < 4 {
 				fmt.Printf("Escolha a carta %d (1 a %d): ", len(currentUser.Deck)+1, len(currentUser.Cards))
 				input := utils.ReadLine(reader)
-				fmt.Println("DEBUG - input lido:", input)
 				inputInt, err := strconv.Atoi(input)
-				if err != nil {
-					fmt.Println("Entrada inválida! Digite um número.")
-					continue
-				}
-
-				cardIndex := inputInt - 1
-				if cardIndex < 0 || cardIndex >= len(currentUser.Cards) {
+				if err != nil || inputInt < 1 || inputInt > len(currentUser.Cards) {
 					fmt.Println("Número inválido! Tente novamente.")
 					continue
 				}
 
+				cardIndex := inputInt - 1
 				if cardsChosen[cardIndex] {
 					fmt.Println("Carta já escolhida! Escolha outra.")
 					continue
 				}
-				
-				//Adiciona a carta no deck
+
 				cardsChosen[cardIndex] = true
 				currentUser.Deck = append(currentUser.Deck, currentUser.Cards[cardIndex])
 				fmt.Println("Carta adicionada:", currentUser.Cards[cardIndex])
 			}
 
 			fmt.Println("Deck montado com sucesso:", currentUser.Deck)
+			err := utils.SendRequest(conn, "DECK", *currentUser)
+			if err != nil {
+				fmt.Println("Erro ao salvar deck no servidor:", err)
+			}
 
 		case "4":
 			return

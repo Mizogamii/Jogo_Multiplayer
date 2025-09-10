@@ -6,12 +6,39 @@
     "TERRA",
     "FOGO",
     "AR",
-    "MATO"
-  ],
-  "deck": [
+    "MATO",
+    "MATO",
+    "FOGO ETERNO #3",
+    "TERRA VULCANICA #2",
+    "FOGO",
+    "AGUA",
+    "AGUA DOCE #4",
+    "FOGO",
+    "TERRA DIAMENTE #1",
+    "AGUA BENTA #1",
+    "AGUA",
+    "MATO",
+    "FOGO",
+    "AR",
+    "TERRA DIAMENTE #1",
     "AGUA",
     "TERRA",
     "FOGO",
-    "AR"
+    "AR",
+    "TERRA",
+    "AGUA DOCE #4",
+    "MATO",
+    "FOGO",
+    "AR",
+    "TERRA",
+    "AGUA",
+    "AR",
+    "AR TORNADO #4"
+  ],
+  "deck": [
+    "FOGO",
+    "AGUA DOCE #4",
+    "MATO",
+    "TERRA"
   ]
 }

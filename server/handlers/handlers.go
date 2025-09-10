@@ -114,28 +114,27 @@ func HandleConnection(conn net.Conn) {
 }
 
 func HandleRegister(conn net.Conn, req shared.Request) {
-	var user shared.User
+    var newUser shared.User
 
-	data, _ := json.Marshal(req.Data)
-	json.Unmarshal(data, &user)
+    data, _ := json.Marshal(req.Data)
+    json.Unmarshal(data, &newUser)
 
-	fmt.Println("☻Usuário recebido: ", user.UserName)
+    fmt.Println("☻Usuário recebido: ", newUser.UserName)
 
-	user.Cards = []string{"AGUA", "TERRA", "FOGO", "AR", "MATO"}
-	user.Deck = []string{"AGUA", "TERRA", "FOGO", "AR"}
+    newUser.Cards = []string{"AGUA", "TERRA", "FOGO", "AR", "MATO"}
+    newUser.Deck  = []string{"AGUA", "TERRA", "FOGO", "AR"}
 
-	registerOk := services.CheckUser(user)
-	if registerOk {
-		err := storage.SaveUsers(user)
-		if err != nil {
-			services.SendResponse(conn, "error", "Falha ao salvar usuário.", nil)
-
-		} else {
-			services.SendResponse(conn, "successRegister", "Cadastro realizado com sucesso", nil)
-		}
-	} else {
-		services.SendResponse(conn, "error", "Usuário já existe", nil)
-	}
+    exist := services.UserExist(newUser)
+    if !exist {
+        err := storage.SaveUsers(newUser)
+        if err != nil {
+            services.SendResponse(conn, "error", "Falha ao salvar usuário.", nil)
+        } else {
+            services.SendResponse(conn, "successRegister", "Cadastro realizado com sucesso", newUser)
+        }
+    } else {
+        services.SendResponse(conn, "error", "Usuário já existe", nil)
+    }
 }
 
 func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
@@ -201,7 +200,7 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 		client.Status = "fila"
 		Matchmaking.Queue = append(Matchmaking.Queue, client)
 		fmt.Println("Cliente entrou na fila:", client.User)
-		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", nil)
+		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", client)
 	} else {
 		services.SendResponse(conn, "error", "Você já está na fila", nil)
 		return
@@ -226,14 +225,26 @@ func HandleDeck(conn net.Conn, req shared.Request) {
 	}
 
 	fmt.Println("Atualizando deck do usuário:", user.UserName)
+	
+	client := services.GetClientByName(user.UserName)
+    
+    client.Deck = user.Deck
 
-	err := storage.SaveUsers(user)
+	userToSave := shared.User{
+		UserName: client.User,
+		Password: client.Password,
+		Cards:    client.Cards,
+		Deck:     client.Deck,
+	}
+
+	err := storage.SaveUsers(userToSave)
+
 	if err != nil {
 		services.SendResponse(conn, "error", "Falha ao salvar deck.", nil)
 		return
 	}
 
-	services.SendResponse(conn, "successUpdateDeck", "Deck atualizado com sucesso!", nil)
+	services.SendResponse(conn, "successUpdateDeck", "Deck atualizado com sucesso!", userToSave)
 }
 
 func HandlePack(conn net.Conn, req shared.Request) {
@@ -260,11 +271,11 @@ func HandlePack(conn net.Conn, req shared.Request) {
 
 	err = storage.SaveUsers(userToSave)
 	if err != nil {
-		services.SendResponse(conn, "error", "Falha ao salvar deck.", nil)
+		services.SendResponse(conn, "error", "Falha ao salvar pack.", nil)
 		return
 	}
 	
-	services.SendResponse(conn, "successPack", "Pacote aberto com sucesso!", cards)
+	services.SendResponse(conn, "successPack", "Pacote aberto com sucesso!", userToSave)
 }
 
 func StartMatchmaking() {

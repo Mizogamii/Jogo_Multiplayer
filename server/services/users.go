@@ -58,18 +58,16 @@ func CheckLogin(newUser shared.User) bool {
 	return false
 }
 
-func CheckUser(newUser shared.User) bool {
-	user, err := storage.LoadUser(newUser.UserName)
-	if err != nil {
-		fmt.Println("Erro ao carregar usuários:", err) 
-		//Quando é com o primeiro cadastro ele acaba mostrando a mensagem de erro pois eu carrego os dados pra RAM primeiro e no caso como é o primeiro cadastro não tem dados para serem lidos. Mas como eu preciso verificar se o cadastro existe para não ter dois usuários iguais preciso fazer a leitura antes. Depois pensa em uma forma de resolver isso.
-		return false
-	}
-	
-	if user.UserName != newUser.UserName && user.Password != newUser.Password {
-		return true
-	}
-	return false
+func UserExist(newUser shared.User) bool {
+    user, err := storage.LoadUser(newUser.UserName)
+    if err != nil {
+        if err.Error() == "user not found" {
+            return false
+        }
+        fmt.Println("Erro ao carregar usuário:", err)
+        return false
+    }
+    return user.UserName == newUser.UserName
 }
 
 func SendResponse(conn net.Conn, status string, message string, data interface{}) {
