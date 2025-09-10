@@ -171,8 +171,6 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 }
 
 func HandlePlay(conn net.Conn, req shared.Request) {
-
-	// desserializa o JSON do req.Data para a struct User
 	var user shared.User
 
 	if err := json.Unmarshal(req.Data, &user); err != nil {
@@ -206,7 +204,7 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 		return
 	}
 
-	// Mostra a fila atual
+	//Mostra a fila atual
 	names := []string{}
 	for _, c := range Matchmaking.Queue {
 		names = append(names, c.User)

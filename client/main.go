@@ -87,6 +87,7 @@ func main() {
 			operationTypeLogin := utils.ShowMenuLogin(conn)
 
 			switch operationTypeLogin {
+			//Entrar na fila e jogar
 			case "1":
 				err = utils.SendRequest(conn, "PLAY", currentUser)
 				if err != nil {
@@ -113,18 +114,55 @@ func main() {
 							break // Sai do loop de aguardar match
 						}
 				}
-
+				
+			//Alterar deck ou só ver
 			case "2": 
 				gameClient.ChoiceDeck(conn, &currentUser)
 				utils.SendRequest(conn, "DECK", currentUser)
 
+			//Abrir pacote
 			case "3":
-				utils.SendRequest(conn, "PACK", currentUser)
-				utils.ListCards(currentUser)
+				//Limpa respostas pendentes no canal 
+				select {
+				case oldResp := <-respChan:
+					fmt.Printf("DEBUG - Resposta antiga descartada: %s\n", oldResp.Status)
+				default:
+					
+				}
+	
+				err = utils.SendRequest(conn, "PACK", currentUser)
+				if err != nil {
+					fmt.Println("Erro ao enviar requisição PACK:", err)
+					continue
+				}
 
+				resp := <-respChan
+				fmt.Println("Status da resposta:", resp.Status)
+				fmt.Println("Mensagem:", resp.Message)
+				
+				if resp.Status == "successPack" {
+					var updatedUser shared.User
+					dataBytes, _ := json.Marshal(resp.Data)
+					if err := json.Unmarshal(dataBytes, &updatedUser); err != nil {
+						fmt.Println("Erro ao desserializar dados do pacote:", err)
+						continue
+					}
+					
+					//Atualiza o currentUser com as novas cartas
+					currentUser.Cards = updatedUser.Cards
+					
+					fmt.Println("Pacote aberto com sucesso! Novas cartas adicionadas.")
+				} else {
+					fmt.Println("Erro ao abrir pacote:", resp.Message)
+				}
+				
+				utils.ListCards(&currentUser)
+
+			//Ver as regras do jogo
 			case "4":
 				utils.ShowRules()
-
+				
+			//Deslogar
 			case "5":
 				fmt.Println("Deslogado com sucesso!")
 				err = utils.SendRequest(conn, "LOGOUT", currentUser)

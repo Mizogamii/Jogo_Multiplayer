@@ -127,7 +127,7 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		utils.ListCardsDeck(user)
+		utils.ListCardsDeck(&user)
 		fmt.Print("Insira a carta desejada (0 para sair): ")
 
 		inputChan := make(chan string, 1) 
@@ -171,11 +171,11 @@ func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 
 		switch option {
 		case "1":
-			utils.ListCards(*currentUser)
+			utils.ListCards(currentUser)
 		case "2":
-			utils.ListCardsDeck(*currentUser)
+			utils.ListCardsDeck(currentUser)
 		case "3":
-			utils.ListCards(*currentUser)
+			utils.ListCards(currentUser)
 			reader := bufio.NewReader(os.Stdin)
 			currentUser.Deck = []string{}
 			cardsChosen := make(map[int]bool)
