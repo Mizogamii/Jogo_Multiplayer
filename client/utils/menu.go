@@ -13,9 +13,9 @@ import (
 
 func Menu(conn net.Conn) string{
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("\n--------------------------------")
-	fmt.Println("           Menu Inicial           ")
-	fmt.Println("--------------------------------")
+	fmt.Println("\n----------------------------------")
+	fmt.Println("            Menu Inicial            ")
+	fmt.Println("----------------------------------")
 	fmt.Println("1 - Cadastro")
 	fmt.Println("2 - Login")
 	fmt.Println("3 - Sair")
@@ -44,9 +44,9 @@ func Menu(conn net.Conn) string{
 func ShowMenuLogin(conn net.Conn) string{
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Println("\n--------------------------------")
-		fmt.Println("              Menu              ")
-		fmt.Println("--------------------------------")
+		fmt.Println("\n----------------------------------")
+		fmt.Println("               Menu               ")
+		fmt.Println("----------------------------------")
 		fmt.Println("1 - Entrar na fila")
 		fmt.Println("2 - Ver/alterar deck")
 		fmt.Println("3 - Abrir pacote")
@@ -74,34 +74,34 @@ func ShowMenuDeck() string{
 }
 
 
-func ListCards(user shared.User) {
-	fmt.Println("\n--------------------------------")
-	fmt.Println("           Suas cartas          ")
-	fmt.Println("--------------------------------")
+func ListCards(user *shared.User) {
+	fmt.Println("\n----------------------------------")
+	fmt.Println("            Suas cartas           ")
+	fmt.Println("----------------------------------")
 	for i, card := range user.Cards {
 		fmt.Printf("%d: %s\n", i+1, card)
 	}
-	fmt.Println("--------------------------------")
+	fmt.Println("----------------------------------")
 }
 
-func ListCardsDeck(user shared.User) {
-	fmt.Println("\n--------------------------------")
-	fmt.Println("            Seu deck            ")
-	fmt.Println("--------------------------------")
+func ListCardsDeck(user *shared.User) {
+	fmt.Println("\n----------------------------------")
+	fmt.Println("             Seu deck             ")
+	fmt.Println("----------------------------------")
 	for i, card := range user.Deck {
 		fmt.Printf("%d: %s\n", i+1, card)
 	}
-	fmt.Println("--------------------------------")
+	fmt.Println("----------------------------------")
 }
 
 
 func ShowRules(){
-	fmt.Println("\n--------------------------------")
-	fmt.Println("             Regras             ")
-	fmt.Println("--------------------------------")
-	fmt.Println("Ao fazer o cadastro você recebeu\n5 cartas. Sendo elas: AGUA, TERRA, FOGO, AR e MATO")
-	fmt.Println("Cada carta tem seus pontos fortes\ne fracos:")
-	fmt.Println(" ÁGUA")
+	fmt.Println("\n----------------------------------")
+	fmt.Println("              Regras              ")
+	fmt.Println("----------------------------------")
+	fmt.Println("Ao fazer o cadastro você recebeu\n5 cartas. Sendo elas: AGUA, TERRA,\nFOGO, AR e MATO")
+	fmt.Println("\nCada carta tem seus pontos fortes\ne fracos:")
+	fmt.Println("\n ÁGUA")
 	fmt.Println(" Forte contra FOGO")
 	fmt.Println(" Fraco contra AR")
 
@@ -119,6 +119,9 @@ func ShowRules(){
 
 	fmt.Println("\n MATO")
 	fmt.Println(" Carta MISTERIOSA")
+	
+	fmt.Println("----------------------------------")
+
 
 }
 /*Com emoji
