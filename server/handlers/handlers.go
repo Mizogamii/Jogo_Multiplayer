@@ -106,6 +106,46 @@ func HandleConnection(conn net.Conn) {
 			}
 			return
 
+		case "EXITROOM":
+			fmt.Println("Fim do jogo por desistencia...")
+			client := services.GetClientByConn(conn)
+			if client == nil {
+				fmt.Println("EXITROOM: cliente não encontrado para conexão")
+				break
+			}
+
+			room := models.GameRooms[client.User]
+			if room == nil {
+				fmt.Println("EXITROOM: sala não encontrada para o cliente:", client.User)
+				services.SendResponse(conn, "successExitRoom", "Você saiu da sala.", nil)
+				break
+			}
+
+			var opponent *services.Cliente
+			if room.Player1 == client {
+				opponent = room.Player2
+			} else {
+				opponent = room.Player1
+			}
+
+			room.Status = models.Finished
+			
+			services.SendResponse(client.Connection, "gameResultExit", "Você saiu da partida", nil)
+			if opponent != nil {
+				services.SendResponse(opponent.Connection, "gameResultExit", "Oponente desistiu — você venceu!", nil)
+				services.SendResponse(opponent.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
+				opponent.Status = "livre"
+			}
+
+			client.Status = "livre"
+
+			delete(models.GameRooms, room.Player1.User)
+			delete(models.GameRooms, room.Player2.User)
+		
+		case "PING":
+			fmt.Println("PING")
+			services.SendResponse(conn, "PONG", "Retornando", nil)
+
 		default:
 			fmt.Println("Ação desconhecida recebida:", req.Action)
 			return
@@ -276,6 +316,7 @@ func HandlePack(conn net.Conn, req shared.Request) {
 	services.SendResponse(conn, "successPack", "Pacote aberto com sucesso!", userToSave)
 }
 
+//Cria partidas entre jogadores na fila (matchmaking).
 func StartMatchmaking() {
 	for {
 		Matchmaking.Mu.Lock()
@@ -304,24 +345,22 @@ func StartMatchmaking() {
 	}
 }
 
+//Notificação que conseguiu um oponente para ambos os lados
 func notifyClient(player1, player2 *services.Cliente) {
-	fmt.Printf("DEBUG Servidor - Notificando %s sobre match com %s\n", player1.User, player2.User)
-	fmt.Printf("DEBUG Servidor - Notificando %s sobre match com %s\n", player2.User, player1.User)
-
 	services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
 	services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
 }
-
+//Carregar a lista de cartas que o cliente possui
 func loadCards(userName string, conn net.Conn) []string {
 	user, err := storage.LoadUser(userName)
 	if err != nil {
 		fmt.Println("Erro ao carregar usuários:", err)
 		return nil
 	}
-
 	return user.Cards
 }
 
+//Carregar a lista de cartas no deck do cliente
 func loadDeck(userName string, conn net.Conn) []string {
 	user, err := storage.LoadUser(userName)
 	if err != nil {

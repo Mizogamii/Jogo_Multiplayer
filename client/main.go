@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"time"
 )
 
 func main() {
-	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
-	//Modifiquei demais e agora nao tá ridando pelo docker CONSERTE DEPOIS
-	conn, err := net.Dial("tcp", "localhost:8080") //para teste local
+	conn, err := net.Dial("tcp", "servidor:8080") //para docker
+	
+	//conn, err := net.Dial("tcp", "localhost:8080") //para teste local
 	if err != nil {
 		fmt.Println("Erro ao conectar:", err)
 		return
@@ -106,10 +107,7 @@ func main() {
 						stopChan <- true
 						exitRequested := gameClient.StartGame(conn, currentUser, respChan)
 						if exitRequested {
-								loginOk = false
 								fmt.Println("Voltando ao menu principal...")
-						} else {
-							fmt.Println("Partida finalizada. Voltando ao menu...")
 						}
 							break // Sai do loop de aguardar match
 						}
@@ -162,8 +160,22 @@ func main() {
 			case "4":
 				utils.ShowRules()
 				
-			//Deslogar
 			case "5":
+				fmt.Println("Ping")
+				start := time.Now()
+				
+				utils.SendRequest(conn, "PING", "Mandando ping")
+
+				resp := <-respChan
+
+				elapsed := time.Since(start)
+
+				fmt.Println("Resposta do servidor:", resp.Message)
+
+    			fmt.Println("Tempo de ping:", elapsed.Nanoseconds(), "ns")
+
+			//Deslogar
+			case "6":
 				fmt.Println("Deslogado com sucesso!")
 				err = utils.SendRequest(conn, "LOGOUT", currentUser)
 				if err != nil {

@@ -92,7 +92,6 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 		select {
 		case <-turnChan:
 			if isEnded() {
-				fmt.Println("Voltando ao menu...")
 				return exitRequested
 			}
 
@@ -102,7 +101,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 					return exitRequested
 				}
 				
-				utils.SendRequest(conn, "CARD", "EXITROOM")
+				utils.SendRequest(conn, "EXITROOM", "Cliente saiu da partida")
 				fmt.Println("Você saiu da partida.")
 				exitRequested = true
 				closeChannels()
@@ -117,7 +116,6 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 			}
 
 		case <-gameOver:
-			fmt.Println("Voltando ao menu...")
 			return exitRequested
 		}
 	}

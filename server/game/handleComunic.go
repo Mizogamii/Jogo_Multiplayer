@@ -69,7 +69,6 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 			room.Rounds = 3 //Para encerrar o jogo
 			services.SendResponse(room.Player1.Connection, "gameResultExit", "Desistiu", nil)
 			services.SendResponse(room.Player2.Connection, "gameResultExit", "Ganhou!☻", nil)
-			return
 			
 		case"P2-EXIT":
 			//PLAYER 1 GANHOU
@@ -77,7 +76,6 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 			room.Rounds = 3 //Para encerrar já que desistiu
 			services.SendResponse(room.Player1.Connection, "gameResultExit", "Ganhou!☻", nil)
 			services.SendResponse(room.Player2.Connection, "gameResultExit", "Desistiu", nil)
-			return
 		}
 		room.Rounds++
 		room.CardP1 = ""
