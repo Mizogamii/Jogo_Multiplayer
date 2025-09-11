@@ -80,3 +80,7 @@ func OpenPack(playerName string)([]string, error){
 	fmt.Println("Pacote aberto com sucesso")
 	return selectedCards, nil
 }
+
+func ShowCardsGlobalDeck(){
+	fmt.Println("Deck global: ", globalDeck)
+}

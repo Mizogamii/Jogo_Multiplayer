@@ -15,6 +15,7 @@ func main() {
 	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
 	
 	conn, err := net.Dial("tcp", "localhost:8080") //para teste local
+
 	if err != nil {
 		fmt.Println("Erro ao conectar:", err)
 		return
@@ -38,13 +39,15 @@ func main() {
 		if !loginOk {
 			operationType := utils.Menu(conn)
 			var requestData interface{}
-
+	
 			switch operationType {
 			case "REGISTER":
 				requestData = utils.Cadastro()
+				utils.Clear()
 			
 			case "LOGIN":
 				requestData = utils.Login()
+				utils.Clear()
 
 			case "EXIT":
 				fmt.Println("Saindo...")		
@@ -175,11 +178,9 @@ func main() {
 				
 				utils.SendRequest(conn, "PING", "Mandando ping")
 
-				resp := <-respChan
+				<-respChan //recebendo a resposta mas ignora para só pegar o tempo
 
 				elapsed := time.Since(start)
-
-				fmt.Println("Resposta do servidor:", resp.Message)
 
     			fmt.Println("Tempo de ping:", elapsed.Nanoseconds(), "ns")
 				fmt.Println("\n----------------------------------")

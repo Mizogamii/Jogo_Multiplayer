@@ -1,4 +1,4 @@
-package main
+package test
 
 import (
 	"PBL/client/utils"
@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 	"time"
+	"testing"
 )
 
 type TestRoom struct {
@@ -23,13 +24,13 @@ type Metrics struct {
 var metrics = Metrics{}
 
 var (
-	CreateRoomsTest = make(map[string]TestRoom) // agora é um map
+	CreateRoomsTest = make(map[string]TestRoom) 
 	QueueTest       []string
 	mu              sync.Mutex
 	wg              sync.WaitGroup
 )
 
-func main() {
+func TestStressClients(t *testing.T) {
 	numClients := 100
 	wg.Add(numClients)
 
@@ -50,7 +51,7 @@ func main() {
 	fmt.Println("Clientes ainda na fila:", QueueTest)
 	fmt.Println("---------------------------")
 
-	// Relatório de desempenho
+	//Relatório de desempenho
 	reportMetrics()
 }
 
@@ -66,20 +67,20 @@ func simulateClient(id int) {
 
 	start := time.Now()
 
-	// canal para receber respostas do servidor
+	//canal para receber respostas do servidor
 	respChan := make(chan shared.Response, 10)
 	stopChan := make(chan bool)
 	go utils.ListenServer(conn, respChan, stopChan)
 
-	// cadastro
+	//cadastro
 	simulateRegister(conn, id)
 	time.Sleep(50 * time.Millisecond)
 
-	// login
+	//login
 	simulateLogin(conn, id)
 	time.Sleep(50 * time.Millisecond)
 
-	// entra na fila
+	//entra na fila
 	simulateEnterQueue(conn, id)
 
 	timeout := time.After(5 * time.Second) // cliente escuta por no máximo 5s

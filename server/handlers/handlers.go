@@ -65,6 +65,7 @@ func HandleConnection(conn net.Conn) {
 
 		case "PACK":
 			HandlePack(conn, req)
+			game.ShowCardsGlobalDeck()
 
 		case "CARD":
 			var card string
