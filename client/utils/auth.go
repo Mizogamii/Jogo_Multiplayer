@@ -2,30 +2,26 @@ package utils
 
 import (
 	"PBL/shared"
-	"bufio"
-	"os"
+	"fmt"
 )
 
-func Cadastro() shared.User{
+func Cadastro() shared.User {
 	var user shared.User
-	reader := bufio.NewReader(os.Stdin)
 
-	print("Insira o nome do usuário: ")
-	user.UserName = ReadLine(reader)
-	print("Insira a senha desejada: ")
-	user.Password = ReadLine(reader)
-	
+	fmt.Print("Insira o nome do usuário: ")
+	user.UserName = ReadLineSafe()
+	fmt.Print("Insira a senha desejada: ")
+	user.Password = ReadLineSafe()
+
 	return user
 }
 
-func Login() shared.User{
+func Login() shared.User {
 	var user shared.User
-	reader := bufio.NewReader(os.Stdin)
-	print("Insira o nome do usuário: ")
-	user.UserName = ReadLine(reader)
+	fmt.Print("Insira o nome do usuário: ")
+	user.UserName = ReadLineSafe()
 	print("Insira a sua senha: ")
-	user.Password = ReadLine(reader)
+	user.Password = ReadLineSafe()
 
 	return user
 }
-

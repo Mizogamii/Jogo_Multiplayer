@@ -2,14 +2,11 @@ package utils
 
 import (
 	"PBL/shared"
-	"bufio"
 	"fmt"
 	"net"
-	"os"
 )
 
-func Menu(conn net.Conn) string{
-	reader := bufio.NewReader(os.Stdin)
+func Menu(conn net.Conn) string {
 	fmt.Println("\n----------------------------------")
 	fmt.Println("            Menu Inicial            ")
 	fmt.Println("----------------------------------")
@@ -17,29 +14,28 @@ func Menu(conn net.Conn) string{
 	fmt.Println("2 - Login")
 	fmt.Println("3 - Sair")
 	fmt.Print("Insira a opção desejada: ")
-	option := ReadLine(reader)
+	option := ReadLineSafe()
 	//fmt.Println("DEBUG - input lido:", option)
 
 	switch option {
-	case "1": 
+	case "1":
 		return "REGISTER"
 
 	case "2":
 		return "LOGIN"
 
 	case "3":
-		fmt.Println("Saindo...") 
-		conn.Close() 
+		fmt.Println("Saindo...")
+		conn.Close()
 		return "EXIT"
-		
+
 	default:
 		fmt.Print("ERRO! Digite apenas números de 1 a 3")
 		return ""
 	}
 }
 
-func ShowMenuLogin(conn net.Conn) string{
-	reader := bufio.NewReader(os.Stdin)
+func ShowMenuLogin(conn net.Conn) string {
 	for {
 		fmt.Println("\n----------------------------------")
 		fmt.Println("               Menu               ")
@@ -51,26 +47,23 @@ func ShowMenuLogin(conn net.Conn) string{
 		fmt.Println("5 - Visualizar ping")
 		fmt.Println("6 - Deslogar")
 		fmt.Print("Insira a opção desejada: ")
-		input := ReadLine(reader)
-		//fmt.Println("DEBUG - input lido:", input)
+		input := ReadLineSafe()
 		return input
 	}
 }
 
-func ShowMenuDeck() string{
-	reader := bufio.NewReader(os.Stdin)
+func ShowMenuDeck() string {
 	fmt.Println("\n--------------------------------")
-		fmt.Println("            Menu deck           ")
-		fmt.Println("--------------------------------")
-		fmt.Println("1 - Visualizar todas as cartas")
-		fmt.Println("2 - Visualizar cartas do deck")
-		fmt.Println("3 - Alterar o deck")
-		fmt.Println("4 - Voltar ao menu principal")
-		fmt.Print("Insira a opção desejada: ")
-		input := ReadLine(reader)
-		return input
+	fmt.Println("            Menu deck           ")
+	fmt.Println("--------------------------------")
+	fmt.Println("1 - Visualizar todas as cartas")
+	fmt.Println("2 - Visualizar cartas do deck")
+	fmt.Println("3 - Alterar o deck")
+	fmt.Println("4 - Voltar ao menu principal")
+	fmt.Print("Insira a opção desejada: ")
+	input := ReadLineSafe()
+	return input
 }
-
 
 func ListCards(user *shared.User) {
 	fmt.Println("\n----------------------------------")
@@ -92,8 +85,7 @@ func ListCardsDeck(user *shared.User) {
 	fmt.Println("----------------------------------")
 }
 
-
-func ShowRules(){
+func ShowRules() {
 	fmt.Println("\n----------------------------------")
 	fmt.Println("              Regras              ")
 	fmt.Println("----------------------------------")
@@ -117,11 +109,11 @@ func ShowRules(){
 
 	fmt.Println("\n MATO")
 	fmt.Println(" Carta MISTERIOSA")
-	
+
 	fmt.Println("----------------------------------")
 
-
 }
+
 /*Com emoji
 func ShowRules2(){
 	fmt.Println("\n----------------------------------")
@@ -149,3 +141,9 @@ func ShowRules2(){
 	fmt.Println(" Carta MISTERIOSA")
 
 }*/
+
+func ShowPing(){
+	fmt.Println("\n----------------------------------")
+	fmt.Println("               PING               ")
+	fmt.Println("----------------------------------")
+}

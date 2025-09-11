@@ -21,6 +21,10 @@ func main() {
 	}
 	defer conn.Close()
 
+	inputMgr := utils.GetInputManager()
+    inputMgr.Start()
+    defer inputMgr.Stop()
+
 	//Canais de comuniação
 	stopChan := make(chan bool)
 	respChan := make(chan shared.Response)
@@ -38,7 +42,7 @@ func main() {
 			switch operationType {
 			case "REGISTER":
 				requestData = utils.Cadastro()
-
+			
 			case "LOGIN":
 				requestData = utils.Login()
 
@@ -86,7 +90,7 @@ func main() {
 
 		} else {
 			operationTypeLogin := utils.ShowMenuLogin(conn)
-
+			utils.Clear()
 			switch operationTypeLogin {
 			//Entrar na fila e jogar
 			case "1":
@@ -131,7 +135,6 @@ func main() {
 				case oldResp := <-respChan:
 					fmt.Printf("DEBUG - Resposta antiga descartada: %s\n", oldResp.Status)
 				default:
-					
 				}
 	
 				err = utils.SendRequest(conn, "PACK", currentUser)
@@ -167,7 +170,7 @@ func main() {
 				utils.ShowRules()
 				
 			case "5":
-				fmt.Println("Ping")
+				utils.ShowPing()
 				start := time.Now()
 				
 				utils.SendRequest(conn, "PING", "Mandando ping")
@@ -179,6 +182,7 @@ func main() {
 				fmt.Println("Resposta do servidor:", resp.Message)
 
     			fmt.Println("Tempo de ping:", elapsed.Nanoseconds(), "ns")
+				fmt.Println("\n----------------------------------")
 
 			//Deslogar
 			case "6":

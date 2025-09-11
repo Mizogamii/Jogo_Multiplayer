@@ -3,10 +3,8 @@ package gameClient
 import (
 	"PBL/client/utils"
 	"PBL/shared"
-	"bufio"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"sync"
 )
@@ -14,16 +12,16 @@ import (
 func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Response) bool {
 	fmt.Println("Partida iniciada!")
 
-	turnChan := make(chan bool, 1)    // sinal de vez do jogador (buffered)
-	gameOver := make(chan struct{})   // sinal de fim de jogo
+	turnChan := make(chan bool, 1)    
+	gameOver := make(chan struct{})   
 
 	var ended bool
-	var mu sync.Mutex // protege a variável ended
-	var once sync.Once // garante que os canais sejam fechados apenas uma vez
+	var mu sync.Mutex 
+	var once sync.Once 
 
 	exitRequested := false
 
-	// Função para fechar canais de forma segura
+	//Função para fechar canais de forma segura
 	closeChannels := func() {
 		once.Do(func() {
 			close(gameOver)
@@ -31,7 +29,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 		})
 	}
 
-	// Função para marcar como terminado
+	//Função para marcar como terminado
 	setEnded := func() bool {
 		mu.Lock()
 		defer mu.Unlock()
@@ -62,8 +60,8 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 			case "yourTurn":
 				if !isEnded() {
 					select {
-					case turnChan <- true: // avisa que é a vez
-					case <-gameOver: // se já acabou, não trava
+					case turnChan <- true: 
+					case <-gameOver:
 					}
 				}
 
@@ -78,7 +76,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 				}
 
 			case "gameOver":
-				if setEnded() { // se já estava ended, não processa
+				if setEnded() { 
 					return
 				}
 				fmt.Println("Fim de jogo, voltando ao menu...")
@@ -122,7 +120,6 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 }
 
 func ShowGame(user shared.User, gameOver chan struct{}) string {
-	reader := bufio.NewReader(os.Stdin)
 
 	for {
 		utils.ListCardsDeck(&user)
@@ -131,7 +128,7 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 		inputChan := make(chan string, 1) 
 		go func() {
 			defer close(inputChan)
-			inputChan <- utils.ReadLine(reader)
+			inputChan <- utils.ReadLineSafe()
 		}()
 
 		select {
@@ -166,7 +163,7 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 	for {
 		option := utils.ShowMenuDeck()
-
+		utils.Clear()
 		switch option {
 		case "1":
 			utils.ListCards(currentUser)
@@ -174,13 +171,13 @@ func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 			utils.ListCardsDeck(currentUser)
 		case "3":
 			utils.ListCards(currentUser)
-			reader := bufio.NewReader(os.Stdin)
+
 			currentUser.Deck = []string{}
 			cardsChosen := make(map[int]bool)
 
 			for len(currentUser.Deck) < 4 {
 				fmt.Printf("Escolha a carta %d (1 a %d): ", len(currentUser.Deck)+1, len(currentUser.Cards))
-				input := utils.ReadLine(reader)
+				input := utils.ReadLineSafe()
 				inputInt, err := strconv.Atoi(input)
 				if err != nil || inputInt < 1 || inputInt > len(currentUser.Cards) {
 					fmt.Println("Número inválido! Tente novamente.")
@@ -205,6 +202,7 @@ func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 			}
 
 		case "4":
+			utils.Clear()
 			return
 		default:
 			fmt.Println("Opção inválida!")
