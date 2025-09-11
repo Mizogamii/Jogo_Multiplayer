@@ -14,7 +14,6 @@ services:
       - servidor
     stdin_open: true
     tty: true
-    command: tail -f /dev/null
 
   cliente2:
     build:
@@ -24,7 +23,6 @@ services:
       - servidor
     stdin_open: true
     tty: true
-    command: tail -f /dev/null
 
   cliente3:
     build:
@@ -34,4 +32,3 @@ services:
       - servidor
     stdin_open: true
     tty: true
-    command: tail -f /dev/null

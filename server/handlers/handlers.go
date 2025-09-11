@@ -146,6 +146,9 @@ func HandleConnection(conn net.Conn) {
 			fmt.Println("PING")
 			services.SendResponse(conn, "PONG", "Retornando", nil)
 
+		case "LEAVEQUEUE":
+			HandleLeave(conn, req)
+
 		default:
 			fmt.Println("Ação desconhecida recebida:", req.Action)
 			return
@@ -314,6 +317,41 @@ func HandlePack(conn net.Conn, req shared.Request) {
 	}
 	
 	services.SendResponse(conn, "successPack", "Pacote aberto com sucesso!", userToSave)
+}
+
+func HandleLeave(conn net.Conn, req shared.Request) {
+    client := services.GetClientByConn(conn)
+    if client == nil {
+        fmt.Println("Cliente não encontrado para sair da fila")
+        services.SendResponse(conn, "error", "Cliente não encontrado", nil)
+        return
+    }
+
+    Matchmaking.Mu.Lock()
+    defer Matchmaking.Mu.Unlock()
+
+    found := false
+    for i, c := range Matchmaking.Queue {
+        if c == client {
+            Matchmaking.Queue = append(Matchmaking.Queue[:i], Matchmaking.Queue[i+1:]...)
+            client.Status = "livre"
+            found = true
+            break
+        }
+    }
+
+    if found {
+        fmt.Println("Cliente saiu da fila:", client.User)
+        services.SendResponse(conn, "successLeaveQueue", "Você saiu da fila", nil)
+    } else {
+        services.SendResponse(conn, "error", "Você não estava na fila", nil)
+    }
+
+    names := []string{}
+    for _, c := range Matchmaking.Queue {
+        names = append(names, c.User)
+    }
+    fmt.Println("Fila atual:", names)
 }
 
 //Cria partidas entre jogadores na fila (matchmaking).

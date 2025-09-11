@@ -8,6 +8,7 @@ import (
 	"net"
 	"strings"
 	"time"
+    "os"
 )
 
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
@@ -29,15 +30,31 @@ func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bo
     }
 }
 
-
-func ShowWaitingScreen(stopChan chan bool) {
+func ShowWaitingScreen(conn net.Conn, stopChan chan bool) {
     frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
     i := 0
+    inputChan := make(chan string)
+
+    go func() {
+        reader := bufio.NewReader(os.Stdin)
+        for {
+            choice := ReadLine(reader)
+            inputChan <- choice
+        }
+    }()
+
     for {
         select {
         case <-stopChan:
             fmt.Println("\nPartida encontrada!")
             return
+        case choice := <-inputChan:
+            if choice == "0" {
+                fmt.Println("\nSaindo da fila...")
+                SendRequest(conn, "LEAVEQUEUE", nil)
+                close(stopChan)
+                return
+            }
         default:
             fmt.Printf("\r%s Procurando partida%s", frames[i%len(frames)], strings.Repeat(".", i%4))
             i++

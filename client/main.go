@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	conn, err := net.Dial("tcp", "servidor:8080") //para docker
+	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
 	
-	//conn, err := net.Dial("tcp", "localhost:8080") //para teste local
+	conn, err := net.Dial("tcp", "localhost:8080") //para teste local
 	if err != nil {
 		fmt.Println("Erro ao conectar:", err)
 		return
@@ -95,22 +95,28 @@ func main() {
 					fmt.Println("Erro:", err)
 					continue
 				}
-	
-				go utils.ShowWaitingScreen(stopChan)
 				
-				for{
+				stopChan := make(chan bool)
+				go utils.ShowWaitingScreen(conn, stopChan)
+				
+				queue := true
+				for queue{
 					resp := <-respChan
 					fmt.Printf("DEBUG - Resposta completa: Status='%s', Message='%s', Data='%v', Tipo Data: %T\n", resp.Status, resp.Message, resp.Data, resp.Data)
 	
 					//Deu match --> mostra a tela da partida
 					if resp.Status == "match"{
+						queue = false
 						stopChan <- true
 						exitRequested := gameClient.StartGame(conn, currentUser, respChan)
 						if exitRequested {
 								fmt.Println("Voltando ao menu principal...")
 						}
 							break // Sai do loop de aguardar match
-						}
+					}else if resp.Status == "successLeaveQueue"{
+						queue = false
+						fmt.Println("Você saiu da fila. Voltando ao menu...")
+					}
 				}
 				
 			//Alterar deck ou só ver
