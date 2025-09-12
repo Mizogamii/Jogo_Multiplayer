@@ -23,6 +23,16 @@ var specialCards = []string{
 	"AR FEDENDO", "AR POLUIDO", "AR LIMPO", "AR TORNADO", "AR FORTE",
 }
 
+
+//Contadores globais normais 
+var globalNormalCounters = map[string]int{
+	"AGUA": 1,
+	"TERRA": 1,
+	"FOGO": 1,
+	"AR": 1,
+	"MATO": 1,
+}
+
 //Contadores globais especias 
 var globalSpecialCounters = map[string]int{
 	"AGUA": 1,
@@ -40,9 +50,13 @@ func rebuildDeckUnsafe() {
 	
 	//Adiciona cartas normais
 	for i := 0; i < 80; i++ {
-		card := normalCards[rand.Intn(len(normalCards))]
-		globalDeck = append(globalDeck, card)
-	}
+        card := normalCards[rand.Intn(len(normalCards))]
+        num := globalNormalCounters[card]
+        uniqueCard := fmt.Sprintf("%s #%d", card, num)
+        globalDeck = append(globalDeck, uniqueCard)
+		
+        globalNormalCounters[card]++
+    }
 	
 	//Adiciona cartas especiais
 	for _, card := range specialCards {
@@ -61,9 +75,6 @@ func rebuildDeckUnsafe() {
 	})
 
 	fmt.Printf("Deck global reconstruído: %d cartas (80 normais + 20 especiais)\n", len(globalDeck))
-	fmt.Printf("Próximos números especiais: AGUA=#%d, TERRA=#%d, FOGO=#%d, AR=#%d\n", 
-		globalSpecialCounters["AGUA"], globalSpecialCounters["TERRA"], 
-		globalSpecialCounters["FOGO"], globalSpecialCounters["AR"])
 }
 
 func BuildGlobalDeck() {
@@ -79,6 +90,7 @@ func OpenPack(playerName string)([]string, error){
 	if len(globalDeck) < 3{
 		return nil, fmt.Errorf("acabou as cartas")
 	}
+
 	selectedCards := make([]string, 3)
 	copy(selectedCards, globalDeck[:3])
 
@@ -99,10 +111,3 @@ func ShowCardsGlobalDeck(){
 	fmt.Println("Deck global: ", globalDeck)
 }
 
-func ShowSpecialCounters() {
-	deckGlobalMutex.Lock()
-	defer deckGlobalMutex.Unlock()
-	fmt.Printf("Contadores especiais: AGUA=#%d, TERRA=#%d, FOGO=#%d, AR=#%d\n", 
-		globalSpecialCounters["AGUA"], globalSpecialCounters["TERRA"], 
-		globalSpecialCounters["FOGO"], globalSpecialCounters["AR"])
-}
