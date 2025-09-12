@@ -187,7 +187,7 @@ func main() {
 
 			//Deslogar
 			case "6":
-				fmt.Println("Deslogado com sucesso!")
+				fmt.Printf("\n%sDeslogado com sucesso!%s\n", utils.Cyan, utils.Reset)
 				err = utils.SendRequest(conn, "LOGOUT", currentUser)
 				if err != nil {
 					fmt.Println("Erro:", err)

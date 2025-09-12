@@ -125,7 +125,6 @@ func ShowWaitingScreen(conn net.Conn, stopChan chan bool) {
 	i := 0
 
 	inputMgr := GetInputManager()
-
 	for {
 		select {
 		case <-stopChan:

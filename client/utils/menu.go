@@ -14,7 +14,6 @@ const (
 	Blue   = "\033[34m"
 	Purple = "\033[35m"
 	Cyan   = "\033[36m"
-	White  = "\033[37m"
 )
 
 func Menu(conn net.Conn) string {
@@ -124,34 +123,6 @@ func ShowRules() {
 	fmt.Println("----------------------------------")
 
 }
-
-/*Com emoji
-func ShowRules2(){
-	fmt.Println("\n----------------------------------")
-	fmt.Println("              Regras              ")
-	fmt.Println("----------------------------------")
-	fmt.Println("Ao fazer o cadastro você recebeu\n5 cartas. Sendo elas: AGUA, TERRA,\nFOGO, AR e MATO")
-	fmt.Println("\nCada carta tem seus pontos fortes\ne fracos:")
-	fmt.Println("\n ÁGUA💧")
-	fmt.Println(" Forte contra FOGO")
-	fmt.Println(" Fraco contra AR")
-
-	fmt.Println("\n TERRA🌱")
-	fmt.Println(" Forte contra AR")
-	fmt.Println(" Fraco contra FOGO")
-
-	fmt.Println("\n FOGO🔥")
-	fmt.Println(" Forte contra TERRA")
-	fmt.Println(" Fraco contra ÁGUA")
-
-	fmt.Println("\n AR💨")
-	fmt.Println(" Forte contra ÁGUA")
-	fmt.Println(" Fraco contra TERRA")
-
-	fmt.Println("\n MATO🌿")
-	fmt.Println(" Carta MISTERIOSA")
-
-}*/
 
 func ShowPing(){
 	fmt.Println("\n----------------------------------")

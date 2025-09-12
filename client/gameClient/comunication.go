@@ -9,12 +9,10 @@ import (
 	"sync"
 )
 
-var(
-	result string
-	resultReady bool
-)
+var result string
+
 	func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Response) bool {
-	fmt.Println("Partida iniciada!")
+	fmt.Printf("\n%sPartida iniciada!%s\n",utils.Purple, utils.Reset)
 
 	turnChan := make(chan bool, 1)    
 	gameOver := make(chan struct{})   
@@ -63,6 +61,7 @@ var(
 			switch resp.Status {
 			case "yourTurn":
 				if !isEnded() {
+					fmt.Printf("\n%sSua vez: %s%s\n", utils.Blue, currentUser.UserName, utils.Reset)
 					select {
 					case turnChan <- true: 
 					case <-gameOver:
@@ -71,14 +70,12 @@ var(
 
 			case "opponentPlayed":
 				if !isEnded() {
-					fmt.Println("Oponente jogou:", resp.Data)
+					fmt.Printf("\n%sOponente jogou: %s%s\n", utils.Green, resp.Data, utils.Reset)
 				}
 
 			case "gameResult", "gamefinalResult", "gameResultExit":
 				if !isEnded() {
-					//fmt.Println("Resultado:", resp.Message)
 					result = resp.Message
-					resultReady = true
 					utils.PrintResult(result)
 				}
 
@@ -101,16 +98,15 @@ var(
 			}
 
 			card := ShowGame(currentUser, gameOver)
-			result = ""
-			resultReady = false
-
+		
 			if card == "EXITROOM" {
 				if setEnded() { 
 					return exitRequested
 				}
 				
 				utils.SendRequest(conn, "EXITROOM", "Cliente saiu da partida")
-				fmt.Println("Você saiu da partida.")
+				fmt.Printf("\n%sVocê saiu da partida.%s\n",utils.Red, utils.Reset)
+				fmt.Printf("Sua vez: ", )
 				exitRequested = true
 				closeChannels()
 				return exitRequested
@@ -132,12 +128,9 @@ var(
 func ShowGame(user shared.User, gameOver chan struct{}) string {
 	for {
 		utils.ListCardsDeck(&user)
-		if resultReady {
-			utils.PrintResult(result)
-		}
 
 		fmt.Print("Insira a carta desejada (0 para sair): ")
-
+		
 		inputChan := make(chan string, 1) 
 		go func() {
 			defer close(inputChan)
@@ -157,6 +150,7 @@ func ShowGame(user shared.User, gameOver chan struct{}) string {
 				fmt.Println("Número inválido! Escolha entre 0 e 4.")
 				continue
 			}
+			utils.Clear()
 			switch inputInt {
 			case 0:
 				return "EXITROOM"
@@ -177,6 +171,7 @@ func ChoiceDeck(conn net.Conn, currentUser *shared.User) {
 	for {
 		option := utils.ShowMenuDeck()
 		utils.Clear()
+	
 		switch option {
 		case "1":
 			utils.ListCards(currentUser)
