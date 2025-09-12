@@ -105,8 +105,10 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 			room.Player2.Status = "livre"
 
 			//Deletando as salas 
+			GameRoomsMu.Lock()
 			delete(models.GameRooms, room.Player1.User)
     		delete(models.GameRooms, room.Player2.User)
+			GameRoomsMu.Unlock()
 		}
 	}
 }

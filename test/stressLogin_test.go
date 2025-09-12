@@ -33,7 +33,7 @@ var (
 	testWG       sync.WaitGroup
 )
 
-const loginNumClient = 200
+const loginNumClient = 300
 
 //Teste para a concorrência no momento do login -> há a lista de usuários online
 func TestConcurrentLogin(t *testing.T){

@@ -136,4 +136,25 @@ func GetClientByConn(conn net.Conn) *Cliente {
 	return nil
 }
 
+//Carregar a lista de cartas que o cliente possui
+func LoadCards(userName string, conn net.Conn) []string {
+	user, err := storage.LoadUser(userName)
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err)
+		return nil
+	}
+	return user.Cards
+}
+
+//Carregar a lista de cartas no deck do cliente
+func LoadDeck(userName string, conn net.Conn) []string {
+	user, err := storage.LoadUser(userName)
+	if err != nil {
+		fmt.Println("Erro ao carregar usuários:", err)
+		return nil
+	}
+
+	return user.Deck
+}
+
 

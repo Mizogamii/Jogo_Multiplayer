@@ -13,14 +13,6 @@ import (
 	"sync"
 	"time"
 )
-
-var (
-	Matchmaking = &models.Matchmaking{
-		Queue: make([]*services.Cliente, 0),
-		Mu:    sync.Mutex{},
-	}
-)
-
 func HandleConnection(conn net.Conn) {
 	defer conn.Close()
 	decoder := json.NewDecoder(conn)
@@ -127,17 +119,21 @@ func HandleConnection(conn net.Conn) {
 			} else {
 				opponent = room.Player1
 			}
-
+			
 			room.Status = models.Finished
 			
+			client.Status = "livre"
+			Dequeue(client)
+
 			services.SendResponse(client.Connection, "gameResultExit", "Você saiu da partida", nil)
+			services.SendResponse(client.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
+
 			if opponent != nil {
 				services.SendResponse(opponent.Connection, "gameResultExit", "Oponente desistiu — você venceu!", nil)
 				services.SendResponse(opponent.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
 				opponent.Status = "livre"
 			}
 
-			client.Status = "livre"
 
 			delete(models.GameRooms, room.Player1.User)
 			delete(models.GameRooms, room.Player2.User)
@@ -195,8 +191,8 @@ func HandleLogin(conn net.Conn, req shared.Request) (*services.Cliente, bool) {
 				Login:      true,
 				Status:     "livre",
 				Password:   user.Password,
-				Cards:      loadCards(user.UserName, conn),
-				Deck:       loadDeck(user.UserName, conn),
+				Cards:      services.LoadCards(user.UserName, conn),
+				Deck:       services.LoadDeck(user.UserName, conn),
 			}
 			services.AddUsers(cliente)
 			fmt.Println(cliente.Status)
@@ -222,37 +218,21 @@ func HandlePlay(conn net.Conn, req shared.Request) {
 		return
 	}
 
-	userName := user.UserName
-	fmt.Println("Nome do usuário:", userName)
-
-	client := services.GetClientByName(userName)
+	client := services.GetClientByName(user.UserName)
 	if client == nil {
-		fmt.Println("Cliente não logado:", userName)
+		fmt.Println("Cliente não logado:", user.UserName)
 		services.SendResponse(conn, "error", "Usuário não está logado", nil)
 		return
 	}
 
-	fmt.Println("Status cliente:", client.Status)
-
-	Matchmaking.Mu.Lock()
-	defer Matchmaking.Mu.Unlock()
-
-	if client.Status == "livre" {
-		client.Status = "fila"
-		Matchmaking.Queue = append(Matchmaking.Queue, client)
-		fmt.Println("Cliente entrou na fila:", client.User)
+	if Enqueue(client) {
 		services.SendResponse(conn, "successPlay", "Você entrou na fila de jogo", client)
 	} else {
-		services.SendResponse(conn, "error", "Você já está na fila", nil)
-		return
+		services.SendResponse(conn, "error", "Você já está na fila ou jogando", nil)
 	}
 
 	//Mostra a fila atual
-	names := []string{}
-	for _, c := range Matchmaking.Queue {
-		names = append(names, c.User)
-	}
-	fmt.Println("Fila atual:", names)
+	printQueue()
 
 }
 
@@ -322,36 +302,73 @@ func HandlePack(conn net.Conn, req shared.Request) {
 func HandleLeave(conn net.Conn, req shared.Request) {
     client := services.GetClientByConn(conn)
     if client == nil {
-        fmt.Println("Cliente não encontrado para sair da fila")
         services.SendResponse(conn, "error", "Cliente não encontrado", nil)
         return
     }
 
-    Matchmaking.Mu.Lock()
-    defer Matchmaking.Mu.Unlock()
-
-    found := false
-    for i, c := range Matchmaking.Queue {
-        if c == client {
-            Matchmaking.Queue = append(Matchmaking.Queue[:i], Matchmaking.Queue[i+1:]...)
-            client.Status = "livre"
-            found = true
-            break
-        }
-    }
-
-    if found {
+    if Dequeue(client) {
         fmt.Println("Cliente saiu da fila:", client.User)
         services.SendResponse(conn, "successLeaveQueue", "Você saiu da fila", nil)
+        services.SendResponse(conn, "backToMenu", "Retornando ao menu principal", nil)
     } else {
         services.SendResponse(conn, "error", "Você não estava na fila", nil)
     }
 
-    names := []string{}
-    for _, c := range Matchmaking.Queue {
-        names = append(names, c.User)
-    }
-    fmt.Println("Fila atual:", names)
+    printQueue()
+}
+
+//MATCHMAKING
+type SafeMatchmaking struct{
+	Queue []*services.Cliente
+	ByUser map[string]*services.Cliente
+	Mu sync.Mutex
+}
+
+var Matchmaking = &SafeMatchmaking{
+	Queue: make([]*services.Cliente, 0),
+	ByUser: make(map[string]*services.Cliente),
+}
+
+func Enqueue(client *services.Cliente) bool{
+	Matchmaking.Mu.Lock()
+	defer Matchmaking.Mu.Unlock()
+
+	if client.Status != "livre" {
+		return false
+	}
+
+	if _, exists := Matchmaking.ByUser[client.User]; exists {
+		return false
+	}
+
+	client.Status = "fila"
+	Matchmaking.Queue = append(Matchmaking.Queue, client)
+	Matchmaking.ByUser[client.User] = client
+
+	fmt.Println("Cliente entrou na fila:", client.User)
+	return true
+}
+
+func Dequeue(client *services.Cliente) bool {
+	Matchmaking.Mu.Lock()
+	defer Matchmaking.Mu.Unlock()
+
+	if _, exists := Matchmaking.ByUser[client.User]; !exists {
+		return false
+	}
+
+	for i, c := range Matchmaking.Queue{
+		if c.User == client.User{
+			Matchmaking.Queue = append(Matchmaking.Queue[:i], Matchmaking.Queue[i+1:]...)
+			break
+		}
+	}
+	delete(Matchmaking.ByUser, client.User)
+	client.Status = "livre"
+
+	fmt.Println("Cliente saiu da fila:", client.User)
+
+	return true
 }
 
 //Cria partidas entre jogadores na fila (matchmaking).
@@ -388,23 +405,11 @@ func notifyClient(player1, player2 *services.Cliente) {
 	services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
 	services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
 }
-//Carregar a lista de cartas que o cliente possui
-func loadCards(userName string, conn net.Conn) []string {
-	user, err := storage.LoadUser(userName)
-	if err != nil {
-		fmt.Println("Erro ao carregar usuários:", err)
-		return nil
-	}
-	return user.Cards
-}
 
-//Carregar a lista de cartas no deck do cliente
-func loadDeck(userName string, conn net.Conn) []string {
-	user, err := storage.LoadUser(userName)
-	if err != nil {
-		fmt.Println("Erro ao carregar usuários:", err)
-		return nil
+func printQueue() {
+	names := []string{}
+	for _, c := range Matchmaking.Queue {
+		names = append(names, c.User)
 	}
-
-	return user.Deck
+	fmt.Println("Fila atual:", names)
 }
