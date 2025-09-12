@@ -128,7 +128,7 @@ func ShowWaitingScreen(conn net.Conn, stopChan chan bool) {
 	for {
 		select {
 		case <-stopChan:
-			fmt.Println("\nPartida encontrada!")
+			fmt.Printf("\n%sPartida encontrada!%s\n", Green, Reset)
 			return
 
 		default:

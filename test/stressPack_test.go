@@ -44,7 +44,7 @@ func TestConcurrentPack(t *testing.T) {
 	}
 }
 
-//Teste abrindo os pacores
+//Teste abrindo os pacotes
 func testOpenPack(id int) {
 	conn, err := net.Dial("tcp", "localhost:8080")
 	if err != nil {

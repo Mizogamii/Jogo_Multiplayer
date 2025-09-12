@@ -117,7 +117,7 @@ func main() {
 						stopChan <- true
 						exitRequested := gameClient.StartGame(conn, currentUser, respChan)
 						if exitRequested {
-								fmt.Println("Voltando ao menu principal...")
+								fmt.Println("\nVoltando ao menu principal...")
 						}
 							break // Sai do loop de aguardar match
 					}else if resp.Status == "successLeaveQueue"{
