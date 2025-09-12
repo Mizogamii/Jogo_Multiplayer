@@ -21,10 +21,10 @@ var specialCards = []string{
 
 	//Ar
 	"AR FEDENDO", "AR POLUIDO", "AR LIMPO", "AR TORNADO", "AR FORTE",
-
 }
 
-var specialCounters = map[string]int{
+//Contadores globais especias 
+var globalSpecialCounters = map[string]int{
 	"AGUA": 1,
 	"TERRA": 1,
 	"FOGO": 1,
@@ -34,22 +34,25 @@ var specialCounters = map[string]int{
 var globalDeck []string
 var deckGlobalMutex sync.Mutex
 
-func BuildGlobalDeck() {
-	deckGlobalMutex.Lock()
-	defer deckGlobalMutex.Unlock()
+
+func rebuildDeckUnsafe() {
+	globalDeck = globalDeck[:0]
+	
+	//Adiciona cartas normais
 	for i := 0; i < 80; i++ {
 		card := normalCards[rand.Intn(len(normalCards))]
 		globalDeck = append(globalDeck, card)
 	}
 	
+	//Adiciona cartas especiais
 	for _, card := range specialCards {
 		prefix := strings.Split(card, " ")[0]
-		num := specialCounters[prefix]
+		num := globalSpecialCounters[prefix]
 		
 		uniqueCard := fmt.Sprintf("%s #%d", card, num)
 		globalDeck = append(globalDeck, uniqueCard)
 		
-		specialCounters[prefix]++
+		globalSpecialCounters[prefix]++
 	}
 
 	//Embaralha
@@ -57,7 +60,16 @@ func BuildGlobalDeck() {
 		globalDeck[i], globalDeck[j] = globalDeck[j], globalDeck[i] 
 	})
 
-	fmt.Printf("Deck global criado: %d cartas (80 normais + 20 especiais)\n", len(globalDeck))
+	fmt.Printf("Deck global reconstruído: %d cartas (80 normais + 20 especiais)\n", len(globalDeck))
+	fmt.Printf("Próximos números especiais: AGUA=#%d, TERRA=#%d, FOGO=#%d, AR=#%d\n", 
+		globalSpecialCounters["AGUA"], globalSpecialCounters["TERRA"], 
+		globalSpecialCounters["FOGO"], globalSpecialCounters["AR"])
+}
+
+func BuildGlobalDeck() {
+	deckGlobalMutex.Lock()
+	defer deckGlobalMutex.Unlock()
+	rebuildDeckUnsafe()
 }
 
 func OpenPack(playerName string)([]string, error){
@@ -73,8 +85,8 @@ func OpenPack(playerName string)([]string, error){
 	globalDeck = globalDeck[3:]
 
 	if len(globalDeck) < 10{
-		fmt.Println("Pouca carta...")
-		BuildGlobalDeck()
+		fmt.Println("Pouca carta... reconstruindo deck...")
+		rebuildDeckUnsafe()
 	}
 
 	fmt.Println("Pacote aberto com sucesso")
@@ -82,5 +94,15 @@ func OpenPack(playerName string)([]string, error){
 }
 
 func ShowCardsGlobalDeck(){
+	deckGlobalMutex.Lock()
+	defer deckGlobalMutex.Unlock()
 	fmt.Println("Deck global: ", globalDeck)
+}
+
+func ShowSpecialCounters() {
+	deckGlobalMutex.Lock()
+	defer deckGlobalMutex.Unlock()
+	fmt.Printf("Contadores especiais: AGUA=#%d, TERRA=#%d, FOGO=#%d, AR=#%d\n", 
+		globalSpecialCounters["AGUA"], globalSpecialCounters["TERRA"], 
+		globalSpecialCounters["FOGO"], globalSpecialCounters["AR"])
 }
