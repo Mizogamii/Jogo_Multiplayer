@@ -4,230 +4,211 @@ import (
 	"PBL/client/utils"
 	"PBL/shared"
 	"fmt"
+	"io/fs"
 	"net"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
-	"time"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 type TestRoom struct {
 	Players []string
 }
 
-type Metrics struct {
-	Latencies  []time.Duration
-	QueueTimes []time.Duration
-	Messages   int
-	mu         sync.Mutex
+type ConcurrencyMetrics struct{
+	TotalConnections int64
+	SuccessfulLogins int64
+	FailedLogins int64
+	PlayersInQueue int64
+	MatchesCreated int64
+	PacksOpened int64
+	TotalMessages int64 
+	CardsDistributed map[string]int64
+	UniqueCards map[string]bool
+	Latence []time.Duration
+	mutex sync.RWMutex
 }
 
-var metrics = Metrics{}
+var concurrencyMetrics = ConcurrencyMetrics{
+	CardsDistributed: make(map[string]int64),
+	UniqueCards:      make(map[string]bool),
+}
 
 var (
-	CreateRoomsTest = make(map[string]TestRoom) 
-	QueueTest       []string
-	mu              sync.Mutex
-	wg              sync.WaitGroup
+	MatchedRooms = make(map[string]TestRoom)
+	roomMutex    sync.Mutex
+	testWG       sync.WaitGroup
 )
 
-func TestStressClients(t *testing.T) {
-	numClients := 100
-	wg.Add(numClients)
+const numClient = 200
 
-	for i := 1; i <= numClients; i++ {
-		go simulateClient(i)
+//Teste para a concorrência no momento do login -> há a lista de usuários online
+func TestConcurrentLogin(t *testing.T){
+	defer CleanTestUser() //limpar os arquivos teste
+	testWG.Add(numClient) //numro de goroutines que vão rodar
+	startTime := time.Now()
+	for i := 1; i <= numClient; i++{
+		go testLogin(i)
+		time.Sleep(1 * time.Microsecond)
 	}
-
-	wg.Wait()
-
-	// Relatório final
-	fmt.Println("----- RELATÓRIO FINAL -----")
-	fmt.Println("Salas criadas:")
-	i := 1
-	for _, sala := range CreateRoomsTest {
-		fmt.Printf("Sala %d: %v\n", i, sala.Players)
-		i++
-	}
-	fmt.Println("Clientes ainda na fila:", QueueTest)
-	fmt.Println("---------------------------")
-
-	//Relatório de desempenho
-	reportMetrics()
+	testWG.Wait()
+	fmt.Println("Tempo total: ", time.Since(startTime))
+	fmt.Println("Conexões: ", atomic.LoadInt64(&concurrencyMetrics.TotalConnections))
+	fmt.Println("Logins falhados: ", atomic.LoadInt64(&concurrencyMetrics.FailedLogins))
+	
 }
 
-func simulateClient(id int) {
-	defer wg.Done()
+func TestConcurrentPack(t *testing.T){
+	defer CleanTestUser() //limpar os arquivos teste
+	testWG.Add(numClient)
+	startTime := time.Now()
+	for i := 1; i <= numClient; i++{
+		go testOpenPack(i)
+		time.Sleep(1 * time.Microsecond)
+	}
+	testWG.Wait()
+	fmt.Println("Tempo total: ", time.Since(startTime))
+	fmt.Printf("Pacotes abertos: %d\n", atomic.LoadInt64(&concurrencyMetrics.PacksOpened))
+}
 
-	conn, err := net.Dial("tcp", "localhost:8080")
+//Para tentar a conexão algumas vezes e não só uma
+func connectWithRetry(id int) (net.Conn, error) {
+	for i := 0; i < 3; i++ {
+		conn, err := net.Dial("tcp", "localhost:8080")
+		if err == nil {
+			return conn, nil
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	fmt.Printf("Cliente %d falhou ao conectar após 3 tentativas\n", id)
+	return nil, fmt.Errorf("falha na conexão")
+}
+
+//LOGIN
+func testLogin(id int) {
+	defer testWG.Done()
+	conn, err := connectWithRetry(id)
 	if err != nil {
-		fmt.Printf("Cliente %d não conseguiu conectar: %v\n", id, err)
+		atomic.AddInt64(&concurrencyMetrics.FailedLogins, 1)
+		atomic.AddInt64(&concurrencyMetrics.TotalConnections, 1)
 		return
 	}
 	defer conn.Close()
 
-	start := time.Now()
+	atomic.AddInt64(&concurrencyMetrics.TotalConnections, 1)
 
-	//canal para receber respostas do servidor
-	respChan := make(chan shared.Response, 10)
+	respChan := make(chan shared.Response, 5)
 	stopChan := make(chan bool)
 	go utils.ListenServer(conn, respChan, stopChan)
 
-	//cadastro
-	simulateRegister(conn, id)
-	time.Sleep(50 * time.Millisecond)
-
-	//login
-	simulateLogin(conn, id)
-	time.Sleep(50 * time.Millisecond)
-
-	//entra na fila
-	simulateEnterQueue(conn, id)
-
-	timeout := time.After(5 * time.Second) // cliente escuta por no máximo 5s
-
+	//Register
+	user := shared.User{
+		UserName: fmt.Sprintf("testUser%d", id),
+		Password: "123",
+	}
+	
+	utils.SendRequest(conn, "REGISTER", user)
+	time.Sleep(10 * time.Microsecond)
+	
+	utils.SendRequest(conn, "LOGIN", user)
+	
+	timeout := time.After(3 * time.Second)
+	loginSuccess := false
+	
 	for {
 		select {
-		case resp, ok := <-respChan:
-			if !ok {
+		case resp := <-respChan:
+			atomic.AddInt64(&concurrencyMetrics.TotalMessages, 1)
+			if resp.Status == "successLogin" {
+				atomic.AddInt64(&concurrencyMetrics.SuccessfulLogins, 1)
+				loginSuccess = true
 				return
 			}
-
-			metrics.mu.Lock()
-			metrics.Messages++
-			metrics.mu.Unlock()
-
-			switch resp.Status {
-			case "match":
-				elapsed := time.Since(start)
-				metrics.mu.Lock()
-				metrics.Latencies = append(metrics.Latencies, elapsed)
-				metrics.mu.Unlock()
-
-				p1 := idToName(id)
-				p2 := fmt.Sprintf("%v", resp.Data)
-
-				// ordena os nomes para evitar duplicação
-				if p1 > p2 {
-					p1, p2 = p2, p1
-				}
-
-				key := fmt.Sprintf("%s|%s", p1, p2)
-
-				mu.Lock()
-				if _, ok := CreateRoomsTest[key]; !ok {
-					CreateRoomsTest[key] = TestRoom{Players: []string{p1, p2}}
-				}
-				mu.Unlock()
-
-				fmt.Printf("Cliente %d entrou em partida: %+v\n", id, resp)
-				return
-
-			case "successPlay":
-				mu.Lock()
-				QueueTest = append(QueueTest, idToName(id))
-				mu.Unlock()
-				fmt.Printf("Cliente %d na fila...\n", id)
-
-			default:
-				fmt.Printf("Cliente %d recebeu: %+v\n", id, resp)
-			}
-
 		case <-timeout:
-			fmt.Printf("Cliente %d timeout, encerrando\n", id)
+			if !loginSuccess {
+				atomic.AddInt64(&concurrencyMetrics.FailedLogins, 1)
+			}
 			return
 		}
 	}
 }
 
-// --- Funções de simulação ---
-func simulateRegister(conn net.Conn, id int) {
-	user := shared.User{
-		UserName: fmt.Sprintf("teste%d", id),
-		Password: "123",
-	}
-	err := utils.SendRequest(conn, "REGISTER", user)
+//PACK
+func testOpenPack(id int) {
+	defer testWG.Done()
+	conn, err := connectWithRetry(id)
 	if err != nil {
-		fmt.Printf("Cliente %d erro ao cadastrar: %v\n", id, err)
+		fmt.Printf("Cliente %d não conseguiu conectar\n", id)
 		return
 	}
-	fmt.Printf("Cliente %d enviou REGISTER\n", id)
-}
+	defer conn.Close()
 
-func simulateLogin(conn net.Conn, id int) {
+	respChan := make(chan shared.Response, 5)
+	stopChan := make(chan bool)
+	go utils.ListenServer(conn, respChan, stopChan)
+
 	user := shared.User{
-		UserName: fmt.Sprintf("teste%d", id),
+		UserName: fmt.Sprintf("testUser%d", id),
 		Password: "123",
 	}
-	err := utils.SendRequest(conn, "LOGIN", user)
-	if err != nil {
-		fmt.Printf("Cliente %d erro ao fazer login: %v\n", id, err)
-		return
-	}
-	fmt.Printf("Cliente %d enviou LOGIN\n", id)
-}
 
-func simulateEnterQueue(conn net.Conn, id int) {
-	user := shared.User{
-		UserName: fmt.Sprintf("teste%d", id),
-		Password: "123",
-	}
-	err := utils.SendRequest(conn, "PLAY", user)
-	if err != nil {
-		fmt.Printf("Cliente %d erro ao entrar na fila: %v\n", id, err)
-		return
-	}
-	fmt.Printf("Cliente %d enviou PLAY\n", id)
-}
+	utils.SendRequest(conn, "REGISTER", user)
+	time.Sleep(10 * time.Microsecond)
+	utils.SendRequest(conn, "LOGIN", user)
+	time.Sleep(10 * time.Microsecond)
+	utils.SendRequest(conn, "PACK", user)
 
-func idToName(id int) string {
-	return fmt.Sprintf("teste%d", id)
-}
+	timeout := time.After(5 * time.Second)
+	for {
+		select {
+		case resp := <-respChan:
+			atomic.AddInt64(&concurrencyMetrics.TotalMessages, 1)
 
-// --- Relatório de métricas ---
-func reportMetrics() {
-	metrics.mu.Lock()
-	defer metrics.mu.Unlock()
+			if resp.Status == "successPack" {
+				atomic.AddInt64(&concurrencyMetrics.PacksOpened, 1)
 
-	var total time.Duration
-	for _, l := range metrics.Latencies {
-		total += l
-	}
+				//Extrair cartas da resposta
+				if data, ok := resp.Data.(map[string]interface{}); ok {
+					if cards, ok := data["cards"].([]interface{}); ok {
+						concurrencyMetrics.mutex.Lock()
+						for _, card := range cards {
+							cardStr := card.(string)
 
-	avgLatency := time.Duration(0)
-	if len(metrics.Latencies) > 0 {
-		avgLatency = total / time.Duration(len(metrics.Latencies))
-	}
+							if concurrencyMetrics.UniqueCards[cardStr] {
+								fmt.Printf("ERRO: carta duplicada detectada! %s\n", cardStr)
+							} else {
+								concurrencyMetrics.UniqueCards[cardStr] = true
+								concurrencyMetrics.CardsDistributed[cardStr]++
+							}
+						}
+						concurrencyMetrics.mutex.Unlock()
+					}
+				}
 
-	fmt.Println("===== RELATÓRIO DE DESEMPENHO =====")
-	fmt.Printf("Mensagens recebidas: %d\n", metrics.Messages)
-	fmt.Printf("Latência média: %v\n", avgLatency)
-	fmt.Printf("Latência mínima: %v\n", min(metrics.Latencies))
-	fmt.Printf("Latência máxima: %v\n", max(metrics.Latencies))
-	fmt.Println("===================================")
-}
-
-func min(vals []time.Duration) time.Duration {
-	if len(vals) == 0 {
-		return 0
-	}
-	m := vals[0]
-	for _, v := range vals {
-		if v < m {
-			m = v
+				fmt.Printf("Cliente %d abriu pacote com sucesso!\n", id)
+				return
+			}
+		case <-timeout:
+			fmt.Printf("Cliente %d timeout ao abrir pacote\n", id)
+			return
 		}
 	}
-	return m
 }
 
-func max(vals []time.Duration) time.Duration {
-	if len(vals) == 0 {
-		return 0
-	}
-	m := vals[0]
-	for _, v := range vals {
-		if v > m {
-			m = v
-		}
-	}
-	return m
+//Apagar arquivos json dos usuários teste
+func CleanTestUser() error {
+    dir := "../server/data" 
+    return filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if !info.IsDir() && strings.HasPrefix(info.Name(), "test") && strings.HasSuffix(info.Name(), ".json") {
+            os.Remove(path)
+        }
+        return nil
+    })
 }

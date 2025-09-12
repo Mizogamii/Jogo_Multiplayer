@@ -14,6 +14,7 @@ func main() {
 	go handlers.StartMatchmaking()
 
 	listener, err := net.Listen("tcp", ":8080")
+
 	if err != nil {
 		fmt.Println("Erro ao iniciar servidor:", err)
 		return
