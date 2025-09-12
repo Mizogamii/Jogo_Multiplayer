@@ -108,7 +108,6 @@ func GetClientByName(userName string) *Cliente{
 
     for _, c := range listUsersOnline {
         if c.User == userName {
-			fmt.Println("O nome do cara ai: ", c)
             return c
         }
     }
