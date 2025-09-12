@@ -6,6 +6,17 @@ import (
 	"net"
 )
 
+const (
+	Reset  = "\033[0m"
+	Red    = "\033[31m"
+	Green  = "\033[32m"
+	Yellow = "\033[33m"
+	Blue   = "\033[34m"
+	Purple = "\033[35m"
+	Cyan   = "\033[36m"
+	White  = "\033[37m"
+)
+
 func Menu(conn net.Conn) string {
 	fmt.Println("\n----------------------------------")
 	fmt.Println("            Menu Inicial            ")
@@ -146,4 +157,10 @@ func ShowPing(){
 	fmt.Println("\n----------------------------------")
 	fmt.Println("               PING               ")
 	fmt.Println("----------------------------------")
+}
+
+func PrintResult(result string){
+	if result != "" {
+        fmt.Printf("\n%sResultado: %s%s\n", Yellow, result, Reset)
+    }
 }

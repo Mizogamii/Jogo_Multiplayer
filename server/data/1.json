@@ -1,0 +1,23 @@
+{
+  "username": "1",
+  "password": "1",
+  "cards": [
+    "AGUA",
+    "TERRA",
+    "FOGO",
+    "AR",
+    "MATO",
+    "AR #8",
+    "AR LIMPO #3",
+    "AR #18",
+    "TERRA #1",
+    "AR FORTE #5",
+    "AR #21"
+  ],
+  "deck": [
+    "AR LIMPO #3",
+    "AGUA",
+    "TERRA",
+    "MATO"
+  ]
+}

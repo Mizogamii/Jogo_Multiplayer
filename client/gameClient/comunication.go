@@ -9,7 +9,11 @@ import (
 	"sync"
 )
 
-func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Response) bool {
+var(
+	result string
+	resultReady bool
+)
+	func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Response) bool {
 	fmt.Println("Partida iniciada!")
 
 	turnChan := make(chan bool, 1)    
@@ -18,7 +22,7 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 	var ended bool
 	var mu sync.Mutex 
 	var once sync.Once 
-
+	
 	exitRequested := false
 
 	//Função para fechar canais de forma segura
@@ -72,14 +76,17 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 
 			case "gameResult", "gamefinalResult", "gameResultExit":
 				if !isEnded() {
-					fmt.Println("Resultado:", resp.Message)
+					//fmt.Println("Resultado:", resp.Message)
+					result = resp.Message
+					resultReady = true
+					utils.PrintResult(result)
 				}
 
 			case "gameOver":
 				if setEnded() { 
 					return
 				}
-				fmt.Println("Fim de jogo, voltando ao menu...")
+				fmt.Println("\n", resp.Message)
 				return
 			}
 		}
@@ -94,6 +101,9 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 			}
 
 			card := ShowGame(currentUser, gameOver)
+			result = ""
+			resultReady = false
+
 			if card == "EXITROOM" {
 				if setEnded() { 
 					return exitRequested
@@ -120,9 +130,12 @@ func StartGame(conn net.Conn, currentUser shared.User, respChan chan shared.Resp
 }
 
 func ShowGame(user shared.User, gameOver chan struct{}) string {
-
 	for {
 		utils.ListCardsDeck(&user)
+		if resultReady {
+			utils.PrintResult(result)
+		}
+
 		fmt.Print("Insira a carta desejada (0 para sair): ")
 
 		inputChan := make(chan string, 1) 
