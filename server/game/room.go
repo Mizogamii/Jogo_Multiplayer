@@ -29,10 +29,8 @@ func CreateRoom(player1, player2 *services.Cliente) *models.Room {
 
 	services.SendResponse(player1.Connection, "match", "Oponente encontrado", player2.User)
 	services.SendResponse(player2.Connection, "match", "Oponente encontrado", player1.User)
-	fmt.Println("Enviando match")
 
 	services.SendResponse(turn.Connection, "yourTurn", "É sua vez de jogar!", nil)
-	fmt.Println("Enviando yourTurn")
 
 	return room
 }

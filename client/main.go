@@ -109,7 +109,7 @@ func main() {
 				queue := true
 				for queue{
 					resp := <-respChan
-					fmt.Printf("DEBUG - Resposta completa: Status='%s', Message='%s', Data='%v', Tipo Data: %T\n", resp.Status, resp.Message, resp.Data, resp.Data)
+					/*fmt.Printf("DEBUG - Resposta completa: Status='%s', Message='%s', Data='%v', Tipo Data: %T\n", resp.Status, resp.Message, resp.Data, resp.Data)*/
 	
 					//Deu match --> mostra a tela da partida
 					if resp.Status == "match"{
@@ -136,7 +136,7 @@ func main() {
 				//Limpa respostas pendentes no canal 
 				select {
 				case oldResp := <-respChan:
-					fmt.Printf("DEBUG - Resposta antiga descartada: %s\n", oldResp.Status)
+					fmt.Printf("Resposta antiga descartada: %s\n", oldResp.Status)
 				default:
 				}
 	

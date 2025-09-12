@@ -87,7 +87,6 @@ func HandleConnection(conn net.Conn) {
 			game.HandleRound(room, client, card)
 
 		case "LOGOUT":
-			fmt.Println("Logout pedido")
 			client := services.GetClientByConn(conn)
 			if client != nil {
 				client.Login = false
@@ -364,7 +363,7 @@ func StartMatchmaking() {
 			player1 := Matchmaking.Queue[0]
 			player2 := Matchmaking.Queue[1]
 
-			fmt.Printf("DEBUG Matchmaking - Encontrando match: %s vs %s\n", player1.User, player2.User)
+			fmt.Printf("Encontrando match:\n%s vs %s\n", player1.User, player2.User)
 
 			Matchmaking.Queue = Matchmaking.Queue[2:]
 

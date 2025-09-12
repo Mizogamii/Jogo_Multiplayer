@@ -98,7 +98,6 @@ func (im *InputManager) ReadLineWithTimeout(timeout time.Duration) (string, bool
 	}
 }
 
-
 func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bool) {
 	decoder := json.NewDecoder(conn)
 	for {
@@ -109,14 +108,17 @@ func ListenServer(conn net.Conn, respChan chan shared.Response, stopChan chan bo
 		default:
 			var resp shared.Response
 			if err := decoder.Decode(&resp); err != nil {
+				if strings.Contains(err.Error(), "use of closed network connection") {
+					return
+				}
 				fmt.Println("Erro ao receber mensagem do servidor:", err)
-				close(respChan)
 				return
 			}
 			respChan <- resp
 		}
 	}
 }
+
 
 func ShowWaitingScreen(conn net.Conn, stopChan chan bool) {
 	frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
