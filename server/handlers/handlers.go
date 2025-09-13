@@ -124,6 +124,9 @@ func HandleConnection(conn net.Conn) {
 			
 			client.Status = "livre"
 			Dequeue(client)
+			if opponent != nil{
+				Dequeue(opponent)
+			}
 
 			services.SendResponse(client.Connection, "gameResultExit", "Você saiu da partida", nil)
 			services.SendResponse(client.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
@@ -387,9 +390,12 @@ func StartMatchmaking() {
 			player1.Status = "jogando"
 			player2.Status = "jogando"
 
-			Matchmaking.Mu.Unlock()
+			delete(Matchmaking.ByUser, player2.User)
+			delete(Matchmaking.ByUser, player1.User)
 
-			fmt.Println("Queue: ", Matchmaking.Queue)
+			printQueue()
+
+			Matchmaking.Mu.Unlock()
 
 			go notifyClient(player1, player2)
 			go game.CreateRoom(player1, player2)

@@ -6,12 +6,24 @@
     "TERRA",
     "FOGO",
     "AR",
-    "MATO"
+    "MATO",
+    "AR #10",
+    "TERRA #12",
+    "MATO #12",
+    "FOGO #12",
+    "AR #4",
+    "AR #17",
+    "AR #13",
+    "MATO #9",
+    "AR #7",
+    "TERRA #2",
+    "AGUA #12",
+    "AR #12"
   ],
   "deck": [
-    "AGUA",
-    "TERRA",
-    "FOGO",
-    "AR"
+    "TERRA #2",
+    "AGUA #12",
+    "AR #7",
+    "FOGO #12"
   ]
 }

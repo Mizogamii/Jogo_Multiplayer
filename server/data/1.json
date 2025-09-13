@@ -18,12 +18,21 @@
     "FOGO #3",
     "AGUA BENTA #1",
     "AGUA DOCE #4",
-    "AR POLUIDO #2"
+    "AR POLUIDO #2",
+    "AGUA #14",
+    "AGUA GLACIAL #3",
+    "TERRA #12",
+    "AR #7",
+    "FOGO #6",
+    "FOGO #14",
+    "FOGO #7",
+    "AR #1",
+    "AGUA #9"
   ],
   "deck": [
-    "AR LIMPO #3",
     "TERRA #1",
-    "AGUA DOCE #4",
+    "AR FORTE #5",
+    "AGUA BENTA #1",
     "FOGO #9"
   ]
 }
