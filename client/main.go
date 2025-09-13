@@ -50,7 +50,7 @@ func main() {
 				utils.Clear()
 
 			case "EXIT":
-				fmt.Println("Saindo...")		
+				fmt.Printf("\n%sSaindo...%s\n", utils.Cyan,utils.Reset)
 				conn.Close()
 				os.Exit(0)		
 				

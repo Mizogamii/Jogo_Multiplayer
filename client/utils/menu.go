@@ -35,7 +35,7 @@ func Menu(conn net.Conn) string {
 		return "LOGIN"
 
 	case "3":
-		fmt.Println("Saindo...")
+		Clear()
 		conn.Close()
 		return "EXIT"
 
