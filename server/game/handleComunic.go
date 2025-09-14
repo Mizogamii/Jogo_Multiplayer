@@ -112,3 +112,35 @@ func HandleRound(room *models.Room, client *services.Cliente, card string) {
 		}
 	}
 }
+
+func HandleDisconnect(room *models.Room, client *services.Cliente){
+	if room == nil || client == nil{
+		return
+	}
+
+	var opponent *services.Cliente
+	if room.Player1 == client{
+		opponent = room.Player2
+	}else{
+		opponent = room.Player1
+	}
+
+	if opponent != nil{
+		if opponent.Connection != nil {
+            services.SendResponse(opponent.Connection, "gameResultExit", "Oponente caiu - você venceu!", nil)
+            services.SendResponse(opponent.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
+        }
+		opponent.Status = "livre"
+	}
+	client.Status = "livre"
+
+	GameRoomsMu.Lock()
+	if room.Player1 != nil {
+        delete(models.GameRooms, room.Player1.User)
+    }
+    if room.Player2 != nil {
+        delete(models.GameRooms, room.Player2.User)
+    }
+	GameRoomsMu.Unlock()
+
+}
