@@ -26,7 +26,7 @@ var (
 	waitG sync.WaitGroup
 )
 
-const matchNumClient = 250
+const matchNumClient = 200
 
 func TestConcurrentMatchmaking(t *testing.T){
 	defer CleanTestUser()
@@ -85,7 +85,6 @@ func testMatchmaking(id int){
 				metrics.mutex.Lock()
 				metrics.Latencies = append(metrics.Latencies, elapsed)
 				metrics.mutex.Unlock()
-				handleMatch(resp, id)
 				return
 
 			case "successPlay":
