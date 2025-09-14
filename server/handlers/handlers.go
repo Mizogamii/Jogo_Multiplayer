@@ -29,11 +29,32 @@ func HandleConnection(conn net.Conn) {
 				} else {
 					fmt.Println("Conexão perdida de:", client.User, "-", err)
 				}
+				room := models.GameRooms[client.User]
+				if room != nil{
+					var opponent *services.Cliente
+					if room.Player1 == client{
+						opponent = room.Player2
+					}else{
+						opponent = room.Player1
+					}
+					if opponent != nil{
+						services.SendResponse(opponent.Connection, "gameResultExit", "Oponente caiu - você venceu!", nil)
+                		services.SendResponse(opponent.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
+						opponent.Status = "livre"
+					}
+				}
+				
+				game.GameRoomsMu.Lock()
+				delete(models.GameRooms, room.Player1.User)
+            	delete(models.GameRooms, room.Player2.User)
+				game.GameRoomsMu.Unlock()
+
 				services.DelUsers(client)
+
 			} else {
 				if err == io.EOF {
 					fmt.Println("Conexão fechada de cliente desconhecido")
-				} else {
+				}else{
 					fmt.Println("Erro na conexão de cliente desconhecido: ", err)
 				}
 			}
@@ -136,10 +157,10 @@ func HandleConnection(conn net.Conn) {
 				services.SendResponse(opponent.Connection, "gameOver", "Fim de jogo, voltando ao menu...", nil)
 				opponent.Status = "livre"
 			}
-
-
+			game.GameRoomsMu.Lock()
 			delete(models.GameRooms, room.Player1.User)
 			delete(models.GameRooms, room.Player2.User)
+			game.GameRoomsMu.Unlock()
 		
 		case "PING":
 			fmt.Println("PING")
@@ -154,6 +175,7 @@ func HandleConnection(conn net.Conn) {
 		}
 	}
 }
+
 
 func HandleRegister(conn net.Conn, req shared.Request) {
     var newUser shared.User

@@ -20,6 +20,7 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-type Card struct {
+/*type Card struct {
 	NameCard string `json:"name"`
-}//Ideia futura, usar struct para as cartas e não string
+}
+//Ideia futura, usar struct para as cartas e não string*/
