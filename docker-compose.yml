@@ -2,14 +2,16 @@ services:
   servidor:
     build:
       context: .              
-      dockerfile: server/Dockerfile
+      dockerfile: Dockerfile.server
+    container_name: servidor
     ports:
       - "8080:8080"
+
 
   cliente1:
     build:
       context: .
-      dockerfile: client/Dockerfile
+      dockerfile: Dockerfile.client
     depends_on:
       - servidor
     stdin_open: true
@@ -18,7 +20,7 @@ services:
   cliente2:
     build:
       context: .
-      dockerfile: client/Dockerfile
+      dockerfile: Dockerfile.client
     depends_on:
       - servidor
     stdin_open: true
@@ -27,7 +29,7 @@ services:
   cliente3:
     build:
       context: .
-      dockerfile: client/Dockerfile
+      dockerfile: Dockerfile.client
     depends_on:
       - servidor
     stdin_open: true
