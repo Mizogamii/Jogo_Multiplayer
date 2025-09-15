@@ -12,9 +12,13 @@ import (
 )
 
 func main() {
-	//conn, err := net.Dial("tcp", "servidor:8080") //para docker
-	
-	conn, err := net.Dial("tcp", "localhost:8080") //para teste local
+	//Para docker
+	//serverAddress := "servidor:8080"
+
+	//Para teste local
+	serverAddress := "localhost:8080" 
+
+	conn, err := net.Dial("tcp", serverAddress) 
 
 	if err != nil {
 		fmt.Println("Erro ao conectar:", err)

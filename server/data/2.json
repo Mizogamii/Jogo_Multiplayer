@@ -33,12 +33,15 @@
     "TERRA VULCANICA #2",
     "TERRA #11",
     "AGUA #7",
-    "AGUA #11"
+    "AGUA #11",
+    "TERRA #13",
+    "AGUA #10",
+    "MATO #4"
   ],
   "deck": [
+    "TERRA VULCANICA #2",
+    "FOGO DRAGAO #4",
     "AGUA BENTA #1",
-    "TERRA FERTIL #3",
-    "MATO #14",
-    "FOGO HADES #2"
+    "AR"
   ]
 }
