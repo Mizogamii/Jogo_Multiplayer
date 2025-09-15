@@ -35,7 +35,7 @@ func HandleConnection(conn net.Conn) {
 				if ok && room != nil{
 					game.HandleDisconnect(room, client)
 				}
-
+				Dequeue(client)
 				services.DelUsers(client)
 
 			} else {
