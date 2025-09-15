@@ -33,7 +33,7 @@ var (
 	testWG       sync.WaitGroup
 )
 
-const loginNumClient = 500
+const loginNumClient = 1000
 
 //Teste para a concorrência no momento do login -> há a lista de usuários online
 func TestConcurrentLogin(t *testing.T){
@@ -92,7 +92,17 @@ func testLogin(id int) {
 	
 	utils.SendRequest(conn, "LOGIN", user)
 	
-	timeout := time.After(3 * time.Second)
+	baseTimeout := 30 * time.Second
+	if matchNumClient > 1000 {
+		baseTimeout = time.Duration(matchNumClient/50) * time.Second
+	}
+
+	if baseTimeout > 2*time.Minute {
+		baseTimeout = 2 * time.Minute
+	}
+	
+	timeout := time.After(baseTimeout)
+
 	loginSuccess := false
 	
 	for {

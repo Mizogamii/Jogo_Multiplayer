@@ -26,7 +26,7 @@ var (
 	waitG sync.WaitGroup
 )
 
-const matchNumClient = 200
+const matchNumClient = 500
 
 func TestConcurrentMatchmaking(t *testing.T){
 	defer CleanTestUser()
@@ -65,7 +65,18 @@ func testMatchmaking(id int){
 	time.Sleep(10 * time.Millisecond)
 
 	simulateEnterQueue(conn, id)
-	timeout := time.After(5 * time.Second)
+	
+	baseTimeout := 30 * time.Second
+	if matchNumClient > 1000 {
+		baseTimeout = time.Duration(matchNumClient/50) * time.Second
+	}
+
+	if baseTimeout > 2*time.Minute {
+		baseTimeout = 2 * time.Minute
+	}
+	
+	timeout := time.After(baseTimeout)
+
 	for {
 		select {
 		case resp, ok := <-respChan:

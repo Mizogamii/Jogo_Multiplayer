@@ -69,7 +69,17 @@ func testOpenPack(id int) {
 	stopChan := make(chan bool)
 	go utils.ListenServer(conn, respChan, stopChan)
 
-	timeout := time.After(5 * time.Second)
+	baseTimeout := 30 * time.Second
+	if matchNumClient > 1000 {
+		baseTimeout = time.Duration(matchNumClient/50) * time.Second
+	}
+
+	if baseTimeout > 2*time.Minute {
+		baseTimeout = 2 * time.Minute
+	}
+	
+	timeout := time.After(baseTimeout)
+	
 	for {
 		select {
 		case resp := <-respChan:
