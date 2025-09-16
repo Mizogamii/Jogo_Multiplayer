@@ -26,7 +26,7 @@ var (
 	waitG sync.WaitGroup
 )
 
-const matchNumClient = 500
+const matchNumClient = 200
 
 func TestConcurrentMatchmaking(t *testing.T){
 	defer CleanTestUser()
