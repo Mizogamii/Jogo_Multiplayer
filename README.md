@@ -29,7 +29,7 @@ cd client
 go run main.go
 ```
 ### 2. Com Docker
-Execute apenas o servidor em um container Docker e o cliente localmente:
+Para executar apenas o servidor em um container Docker e o cliente localmente:
 ```bash
 # Construir a imagem do servidor
 docker build -t server -f Dockerfile.server .
@@ -38,6 +38,21 @@ docker build -t server -f Dockerfile.server .
 docker run -p 8080:8080 --name meuServidor server
 ```
 
+Para executar o servidor e o cliente em um container Docker:
+```bash
+# Construir a imagem do servidor
+docker build -t server -f Dockerfile.server .
+
+# Construir a imagem do cliente
+docker build -t client -f Dockerfile.client .
+
+# Rodar o servidor no container
+docker run -p 8080:8080 --name meuServidor server
+
+# Rodar o cliente no container
+docker run -it --rm --network host client
+
+```
 Parar e remover o container:
 ```bash
 # Parar o container
